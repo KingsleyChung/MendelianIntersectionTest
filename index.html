@@ -929,14 +929,31 @@ body.grown .gbtn{padding:8px 18px;font-size:13px}
 .hypo-label{width:104px}.hypo-label b{font-size:11px}.hypo-label span{font-size:10px}.hypo-flow{gap:4px;min-width:0}.hypo-node{padding:5px 7px;font-size:10px;line-height:1.2}.hypo-arrow{font-size:12px}
 .prediction-choice{gap:4px}.prediction-choice button{padding:6px 8px;font-size:10px}
 main{height:calc(100% - 128px)}
-.stage,body.ops .stage{grid-template-rows:44px 92px 58px minmax(170px,auto) minmax(240px,1fr) auto;gap:8px}
+.stage,body.ops .stage{grid-template-rows:44px 92px 58px minmax(170px,auto) auto minmax(240px,1fr);gap:8px}
 body.ops .bloom{--sh:82px;--bh:38px;padding:13px 4px 5px}
 body.ops .fieldwrap{opacity:1}.fieldwrap{background:linear-gradient(145deg,#fcfbf5,#f3f0e6);border-color:#d8d0be;box-shadow:0 10px 24px rgba(79,61,34,.07)}.fieldstage{min-height:240px}
 .field-lock{background:rgba(255,253,247,.92);border-color:#cbbd9e;color:#75633f}
 .pcard{padding:8px 10px}.pcard-hd{margin-bottom:4px}.pbody{min-height:0}
 .cue{padding:16px 12px 8px;box-shadow:0 7px 18px rgba(51,90,58,.10)}.cue .phase-kicker{left:68px;top:5px}.cue-num{width:38px;height:38px;font-size:17px}.cue-t{font-size:14px}.cue-s{font-size:11.5px}
-@media (max-width:980px){main{height:auto}.stage,body.ops .stage{grid-template-rows:auto auto auto minmax(170px,auto) minmax(220px,1fr) auto}}
-@media (max-width:720px){main,.stage,.mission-strip,.cue,.hypothesis-strip,.parents,.pcard,.fieldwrap,.tools{min-width:0;width:100%;max-width:100%}.mission-strip{height:42px;min-height:42px}.hypothesis-strip{height:auto;min-height:58px}.hypo-flow{max-width:100%;overflow-x:auto}.stage,body.ops .stage{grid-template-rows:42px auto auto minmax(190px,auto) minmax(170px,1fr) auto}.fieldstage{min-height:170px}.cue{padding-top:18px}}
+@media (max-width:980px){main{height:auto}.stage,body.ops .stage{grid-template-rows:auto auto auto minmax(170px,auto) auto minmax(220px,1fr)}}
+@media (max-width:720px){main,.stage,.mission-strip,.cue,.hypothesis-strip,.parents,.pcard,.fieldwrap,.tools{min-width:0;width:100%;max-width:100%}.mission-strip{height:42px;min-height:42px}.hypothesis-strip{height:auto;min-height:58px}.hypo-flow{max-width:100%;overflow-x:auto}.stage,body.ops .stage{grid-template-rows:42px auto auto minmax(190px,auto) auto minmax(170px,1fr)}.fieldstage{min-height:170px}.cue{padding-top:18px}}
+
+/* 手机端只压缩信息，不改变平板 / PC 的实验台结构 */
+@media (max-width:720px){
+  .topbar{position:relative;padding:8px 10px;gap:7px}.brand{gap:7px}.brand .logo{width:32px;height:32px}.brand h1{font-size:14px}.top-actions{margin-left:auto;gap:5px}.top-actions .ghost{padding:6px 8px;font-size:11px}.top-actions .ghost:first-child{font-size:0}.top-actions .ghost:first-child::before{content:'🧭';font-size:14px}.top-actions .ghost:nth-child(2){font-size:0}.top-actions .ghost:nth-child(2)::before{content:'⌕';font-size:17px}.top-actions .ghost:nth-child(3){font-size:0}.top-actions .ghost:nth-child(3)::before{content:'↺';font-size:16px}
+  .cond{order:3;width:100%;margin:0;justify-content:center}.cond-label{font-size:10px}.seg button{padding:5px 10px;font-size:11px}
+  .steps{height:52px;padding:8px 10px;scroll-snap-type:x proximity}.stp{scroll-snap-align:start}.stp .num{width:26px;height:26px}.stp .tx{font-size:11px}.stp .line{width:16px;margin:0 5px}
+  .mission-strip{margin-bottom:0}.mission-copy b{font-size:11px}.mission-link{display:none}
+  .cue{padding:15px 10px 7px}.cue .phase-kicker{left:59px;font-size:9px}.cue-num{width:34px;height:34px;font-size:15px}.cue-title{font-size:13px}.cue-s{font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .hypothesis-strip{padding:7px 9px}.hypo-label{width:100%;display:flex;flex-direction:row;align-items:baseline;justify-content:space-between}.hypo-flow{order:2;width:100%;padding-bottom:1px}.hypo-node{min-width:108px}.prediction-choice{order:3;width:100%}
+  .parents{gap:8px}.pcard{padding:8px}.pcard-hd{font-size:12px}.pcard[data-side="father"] .pbody{min-height:102px}.pcard[data-side="father"] .blooms{display:flex;justify-content:flex-start}.pcard[data-side="father"] .bloom{width:118px;flex:0 0 118px}
+  .pcard[data-side="father"]{display:none}body[data-step="3"] .pcard[data-side="mother"]{display:none}body[data-step="3"] .pcard[data-side="father"]{display:flex}
+  .field-hd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;padding:8px 9px}.field-hd h2{font-size:12px;white-space:nowrap}.field-hd .sub{font-size:10px;white-space:nowrap;text-align:right}.field-hd .legend{grid-column:1/-1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:9px}.fieldstage{min-height:205px}.fieldwrap{border-radius:14px}
+  .tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:7px 8px;gap:6px;align-items:stretch}.tools-lb{grid-column:1/-1;width:100%;font-size:10px}.tools-spacer{display:none}.tool{width:100%;min-width:0!important;padding:7px 4px!important;min-height:48px!important;gap:2px!important;justify-content:center}.tool .t-ico{font-size:18px!important}.tool .t-tx{font-size:10px}.tool .ord{font-size:9px;top:-5px;left:-4px}.tools>.gbtn{grid-column:span 2;width:100%}
+  .side{gap:7px}.card{padding:9px 10px;border-radius:12px}.card h3{margin-bottom:6px;font-size:11.5px}.side .card .empty-note{padding:9px 0!important;font-size:11px}.side .card:nth-child(3){display:none}
+  .time-lapse{left:8px;right:8px;bottom:8px;padding:8px 9px}.time-copy span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .harvest-pot{bottom:3px}
+}
 
 /* v2.2 真实手势与时间过程 */
 #handHint.knifeDemo{animation:knifeSweep 1.65s ease-in-out infinite;transform-origin:center}
@@ -956,6 +973,15 @@ body.harvesting .harvest-pot{display:flex}.pot-arrow{font-size:10px;font-weight:
 .pot-bowl{position:relative;width:72px;height:24px;margin-top:3px;border-radius:8px 8px 30px 30px;background:linear-gradient(180deg,#f2d7a0,#c99d58);border:2px solid #a97c3d;box-shadow:inset 0 4px 5px rgba(255,255,255,.45),0 5px 10px rgba(87,57,20,.2)}.pot-bowl::before{content:'';position:absolute;left:-4px;right:-4px;top:-5px;height:10px;border-radius:50%;background:#f8e6c0;border:2px solid #a97c3d}.pot-bowl i{position:absolute;inset:-1px 4px auto;height:5px;border-radius:50%;background:#8c6538;z-index:1;opacity:.35}
 .harvest-pot small{font-size:9.5px;color:#8b7554;margin-top:2px}.harvest-pot.droppable,.harvest-pot.hit{filter:drop-shadow(0 0 8px rgba(46,125,91,.55));transform:translateX(-50%) scale(1.05)}
 body.harvesting .tool[data-tool="seed"]{opacity:.28;pointer-events:none}
+.process-overlay{display:none;position:fixed;inset:0;z-index:1200;background:rgba(20,31,25,.72);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:24px}
+body.maturing .process-overlay,body.growing .process-overlay{display:flex;animation:processFade .25s ease-out both}@keyframes processFade{from{opacity:0}to{opacity:1}}
+.process-card{width:min(360px,92vw);padding:28px 28px 24px;border:1px solid rgba(255,255,255,.2);border-radius:24px;background:linear-gradient(145deg,#294638,#172d23);color:#fff;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.32)}
+.process-clock{position:relative;width:116px;height:116px;margin:0 auto 18px;border-radius:50%;background:#f5edda;border:7px solid #d8c69b;box-shadow:inset 0 0 0 5px #fffaf0,0 8px 22px rgba(0,0,0,.22);animation:clockFloat 2.4s ease-in-out infinite}@keyframes clockFloat{50%{transform:translateY(-4px) rotate(2deg)}}
+.clock-face{position:absolute;inset:12px;border:1px dashed #b39b69;border-radius:50%}.clock-face::before{content:'12  ·  3  ·  6  ·  9';position:absolute;inset:0;display:grid;place-items:center;color:#8d784d;font:700 11px/1 var(--mono);letter-spacing:4px;transform:rotate(-1deg)}
+.clock-hand{position:absolute;left:50%;bottom:50%;width:4px;border-radius:4px;background:#365b42;transform-origin:50% 100%;transform:translateX(-50%) rotate(0deg)}.clock-hand.hour{height:27px;animation:hourSpin 6s linear infinite}.clock-hand.minute{height:39px;width:3px;background:#c27c38;animation:minuteSpin 2.2s linear infinite}@keyframes hourSpin{to{transform:translateX(-50%) rotate(360deg)}}@keyframes minuteSpin{to{transform:translateX(-50%) rotate(360deg)}}.clock-hand::after{content:'';position:absolute;left:50%;bottom:-4px;width:9px;height:9px;border-radius:50%;background:#365b42;transform:translateX(-50%)}
+.process-title{font-size:20px;font-weight:800;letter-spacing:.04em}.process-sub{margin-top:6px;font-size:12px;color:rgba(255,255,255,.72)}.process-progress{height:7px;margin:20px 0 8px;border-radius:8px;background:rgba(255,255,255,.15);overflow:hidden}.process-progress i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#9ed58b,#f1c66b);transition:width .12s linear}.process-percent{font:12px var(--mono);color:#f5d796}
+body.maturing .time-lapse{display:none!important}
+@media (max-width:720px){.process-card{padding:24px 20px 20px;border-radius:20px}.process-clock{width:102px;height:102px;margin-bottom:15px}.process-title{font-size:18px}.process-sub{font-size:11px}.process-progress{margin-top:16px}}
 </style>
 </head>
 <body>
@@ -1066,6 +1092,19 @@ body.harvesting .tool[data-tool="seed"]{opacity:.28;pointer-events:none}
       </div>
     </div>
 
+    <!-- 工具架：紧邻亲本操作区，缩短鼠标与触屏拖拽距离 -->
+    <div class="tools" id="tools">
+      <span class="tools-lb">实验工具</span>
+      <button class="tool" data-tool="knife"><span class="ord">1</span><span class="t-ico">🔪</span><span class="t-tx">解剖刀</span></button>
+      <button class="tool" data-tool="bag"><span class="ord">2</span><span class="t-ico">🛍</span><span class="t-tx">纸袋</span></button>
+      <button class="tool" data-tool="brush"><span class="ord">3</span><span class="t-ico">🖌</span><span class="t-tx">毛笔</span><span class="fill"><i id="brushFill"></i></span></button>
+      <button class="tool" data-tool="seed" data-drop="seedpot"><span class="ord">4</span><span class="t-ico">🫘</span><span class="t-tx">种子盆</span><span class="badge" id="seedBadge">48</span></button>
+      <span class="tools-spacer"></span>
+      <button class="gbtn soft" id="btnSort" style="display:none">🔍 分类展示</button>
+      <button class="gbtn amber" id="btnGrow" style="display:none">🌱 让它们生长</button>
+      <button class="gbtn soft" id="btnSowAll" style="display:none">⚡ 一键播满</button>
+    </div>
+
     <!-- 田地：4×4 十六宫格 · 2.5D -->
     <div class="fieldwrap" id="fieldwrap">
       <div class="field-hd">
@@ -1083,19 +1122,6 @@ body.harvesting .tool[data-tool="seed"]{opacity:.28;pointer-events:none}
         <div class="sortwrap" id="sortWrap"></div>
       </div>
       <div class="field-lock" id="fieldLock"><span class="lk">🔒</span><span>完成人工授粉、收到种子后解锁播种</span></div>
-    </div>
-
-    <!-- 工具架 -->
-    <div class="tools" id="tools">
-      <span class="tools-lb">工具</span>
-      <button class="tool" data-tool="knife"><span class="ord">1</span><span class="t-ico">🔪</span><span class="t-tx">解剖刀</span></button>
-      <button class="tool" data-tool="bag"><span class="ord">2</span><span class="t-ico">🛍</span><span class="t-tx">纸袋</span></button>
-      <button class="tool" data-tool="brush"><span class="ord">3</span><span class="t-ico">🖌</span><span class="t-tx">毛笔</span><span class="fill"><i id="brushFill"></i></span></button>
-      <button class="tool" data-tool="seed" data-drop="seedpot"><span class="ord">4</span><span class="t-ico">🫘</span><span class="t-tx">种子盆</span><span class="badge" id="seedBadge">48</span></button>
-      <span class="tools-spacer"></span>
-      <button class="gbtn soft" id="btnSort" style="display:none">🔍 分类展示</button>
-      <button class="gbtn amber" id="btnGrow" style="display:none">🌱 让它们生长</button>
-      <button class="gbtn soft" id="btnSowAll" style="display:none">⚡ 一键播满</button>
     </div>
 
   </section>
@@ -1126,6 +1152,15 @@ body.harvesting .tool[data-tool="seed"]{opacity:.28;pointer-events:none}
 <div id="toasts"></div>
 <div id="spotveil"></div>
 <div id="handHint">👆</div>
+<div class="process-overlay" id="processOverlay" aria-live="polite" aria-hidden="true">
+  <div class="process-card">
+    <div class="process-clock" aria-hidden="true"><i class="clock-face"></i><b class="clock-hand hour"></b><b class="clock-hand minute"></b><em></em></div>
+    <div class="process-title" id="processTitle">种子成熟中...</div>
+    <div class="process-sub" id="processSub">时间飞逝，子房正在膨大，种子逐渐充实</div>
+    <div class="process-progress"><i id="processBar"></i></div>
+    <div class="process-percent" id="processPercent">0%</div>
+  </div>
+</div>
 
 <!-- ============ 引导弹窗 ============ -->
 <div class="modal" id="modal">
@@ -1266,6 +1301,8 @@ function freshState(cond){
     grown: false,
     maturing: false,
     matureProgress: 0,
+    growing: false,
+    growthProgress: 0,
     sortOpen: false,               // 「分类展示」是否已把幼苗拔出、左右分堆
     roundRecorded: false,          // 本轮数据是否已记入历史
     rounds: S ? S.rounds : [],     // 跨轮保留
@@ -1304,7 +1341,9 @@ const elSteps = $('#steps'), elField = $('#field'), elBlooms = $('#blooms'),
       elVeil = $('#spotveil'), elHand = $('#handHint'), elFieldWrap = $('#fieldwrap'),
       elPredictionPanel = $('#predictionPanel'), elPhaseKicker = $('#phaseKicker'),
       elTimeLapse = $('#timeLapse'), elTimeBar = $('#timeBar'), elTimeText = $('#timeText'),
-      elTimeCount = $('#timeCount'), elHarvestPot = $('#harvestPot'), elHarvestCount = $('#harvestCount');
+      elTimeCount = $('#timeCount'), elHarvestPot = $('#harvestPot'), elHarvestCount = $('#harvestCount'),
+      elProcessOverlay = $('#processOverlay'), elProcessTitle = $('#processTitle'), elProcessSub = $('#processSub'),
+      elProcessBar = $('#processBar'), elProcessPercent = $('#processPercent');
 
 /* ==========================================================================
    植物 / 花朵 SVG
@@ -1503,6 +1542,18 @@ function renderMaturation(){
       : (p < 68 ? '时间飞逝：豆荚正在伸长，种子逐渐充实……' : '豆荚由嫩变饱满，种子即将成熟……');
   }
   if (elHarvestCount) elHarvestCount.textContent = podCount() ? ('已收 ' + (podCount() * SEEDS_PER_POD) + ' / ' + TOTAL_PLANTS + ' 粒') : '空种子盆 · 0 / 48';
+}
+
+function renderProcess(){
+  const active = S.maturing || S.growing;
+  if (!elProcessOverlay) return;
+  elProcessOverlay.setAttribute('aria-hidden', active ? 'false' : 'true');
+  document.body.classList.toggle('growing', S.growing === true);
+  const p = S.maturing ? (S.matureProgress || 0) : (S.growthProgress || 0);
+  elProcessTitle.textContent = S.maturing ? '种子成熟中...' : '豌豆成长中...';
+  elProcessSub.textContent = S.maturing ? '时间飞逝，子房正在膨大，种子逐渐充实' : '时间飞逝，幼苗破土而出，茎和叶正在伸展';
+  elProcessBar.style.width = Math.max(0, Math.min(100, p)) + '%';
+  elProcessPercent.textContent = Math.round(p) + '%';
 }
 
 /* ---- 操作指令卡 ---- */
@@ -1862,6 +1913,7 @@ function renderTools(){
 /* 主体模式：第 1–6 步处于"操作台模式"（第 6 步的豆荚也长在操作台上，同样要放大）；
    第 7 步显示空穴待播；第 7 步起操作台收窄，把高度让给田地。 */
 function syncBodyClass(){
+  document.body.dataset.step = String(S.step);
   document.body.classList.toggle('ops', S.step <= 6);
   document.body.classList.toggle('maturing', S.maturing === true);
   document.body.classList.toggle('harvesting', S.step === 6 && !S.maturing);
@@ -2619,7 +2671,7 @@ function startMaturation(){
   maturityTimer = window.setInterval(function(){
     const p = Math.min(100, ((Date.now() - started) / duration) * 100);
     S.matureProgress = p;
-    renderMaturation();
+    renderMaturation(); renderProcess();
     if (p >= 100){
       window.clearInterval(maturityTimer); maturityTimer = null;
       S.maturing = false; S.matureProgress = 100;
@@ -2747,7 +2799,10 @@ function sowAll(){
 }
 
 function growAll(){
-  if (S.step !== 8) return;
+  if (S.step !== 8 || S.growing) return;
+  S.growing = true;
+  S.growthProgress = 0;
+  renderProcess();
   elBtnGrow.disabled = true;
   elBtnGrow.textContent = '生长中…';
   formHint(); 
@@ -2757,8 +2812,11 @@ function growAll(){
       c.stage = 3;
       renderField();
       done++;
+      S.growthProgress = done / TOTAL_CELLS * 100;
+      renderProcess();
       if (done === TOTAL_CELLS){
         S.grown = true;
+        S.growing = false;
         if (!S.roundRecorded){                 // 同一轮只记一次，避免重复计数
           S.roundRecorded = true;
           S.rounds.push({ cond: S.cond, tall: tally().tall, dwarf: tally().dwarf, n: TALLN() });
@@ -2810,7 +2868,7 @@ function resetRound(){
 }
 
 function renderAll(){
-  renderSteps(); renderCue(); renderPrediction(); renderParents(); renderMaturation(); renderField();
+  renderSteps(); renderCue(); renderPrediction(); renderParents(); renderMaturation(); renderProcess(); renderField();
   renderTools(); renderSort(); renderStats(false); renderConcl(); renderHist();
   syncCondUI(); syncBodyClass();
   elBtnGrow.textContent = '🌱 让它们生长';

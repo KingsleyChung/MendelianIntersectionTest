@@ -20,6 +20,13 @@ https://kingsleychung.github.io/MendelianIntersectionTest/
 |------|------|
 | `index.html` | 交互模拟主程序，单文件自包含，零外部依赖 |
 | `.nojekyll` | 告知 GitHub Pages 跳过 Jekyll 处理，原样发布静态文件 |
+| `docs/prd-tech-spec.md` | PRD、教学约束与技术实现说明 |
+
+## 设备适配
+
+- PC 与平板优先保留完整实验台、亲本对照、田地和统计区域。
+- 手机端使用紧凑顶栏、横向步骤导航、单列亲本卡、四列工具栏和触屏优化尺寸。
+- 支持鼠标、触屏与 Pointer Events，无需安装应用。
 
 ## 教学流程
 
