@@ -4,10 +4,8 @@
 
 ## 在线访问
 
-部署完成后地址为：
-
 ```
-https://<你的用户名>.github.io/<仓库名>/
+https://kingsleychung.github.io/MendelianIntersectionTest/
 ```
 
 ## 本地运行
@@ -21,7 +19,6 @@ https://<你的用户名>.github.io/<仓库名>/
 | 路径 | 说明 |
 |------|------|
 | `index.html` | 交互模拟主程序，单文件自包含，零外部依赖 |
-| `docs/prd-tech-spec.md` | PRD 与全量技术文档（含教学内容校准、技术方案、测试验收） |
 | `.nojekyll` | 告知 GitHub Pages 跳过 Jekyll 处理，原样发布静态文件 |
 
 ## 教学流程
