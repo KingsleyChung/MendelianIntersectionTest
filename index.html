@@ -1,0 +1,3023 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>孟德尔测交实验 · 假说—演绎法交互模拟</title>
+<style>
+/* ============================================================
+   设计 token
+   ============================================================ */
+:root{
+  --brand:#2E7D5B; --brand-d:#1F5A41; --brand-l:#E6F4EC; --brand-l2:#F2F9F5;
+  --tall:#3FA46A; --tall-l:#E7F6EC;
+  --dwarf:#D08A3E; --dwarf-l:#FBF1E3;
+  --ok:#1E9E6A; --warn:#E5484D; --warn-l:#FDECEC;
+  --accent:#F0A020; --accent-l:#FFF6E6;
+  --info:#3B7DD8; --info-l:#EAF2FD;
+  --bg:#F4F7F5; --surface:#FFFFFF; --surface-2:#FAFCFB;
+  --border:#E1E8E4; --border-2:#EDF2EF;
+  --t1:#1C2A24; --t2:#5A6B64; --t3:#93A19B;
+  /* ---- 2.5D 田地 ---- */
+  --soil:#B08F66; --soil-2:#CBAD84; --soil-3:#8E6C48; --soil-d:#6E5133;
+  --iso-x:56deg; --iso-xn:-56deg;
+  /* ---- 操作台（第 1–5 步放大态）---- */
+  --ops-ring:rgba(46,125,91,.55);
+  --r1:6px; --r2:10px; --r3:14px; --r4:20px; --rf:999px;
+  --sh1:0 1px 2px rgba(16,32,24,.06);
+  --sh2:0 4px 14px rgba(16,32,24,.08);
+  --sh3:0 14px 36px rgba(16,32,24,.14);
+  --font:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC","Source Han Sans SC",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0;font-family:var(--font);background:var(--bg);color:var(--t1);
+  font-size:14px;line-height:1.55;overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.ico{font-style:normal}
+
+/* ============================================================
+   顶栏
+   ============================================================ */
+.topbar{
+  height:56px;display:flex;align-items:center;gap:16px;padding:0 16px;
+  background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:30;
+}
+.brand{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.brand .logo{
+  width:34px;height:34px;border-radius:var(--r2);background:linear-gradient(145deg,var(--brand),#48A87A);
+  display:grid;place-items:center;font-size:17px;box-shadow:var(--sh1);
+}
+.brand h1{margin:0;font-size:15px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.brand p{margin:0;font-size:11px;color:var(--t3);white-space:nowrap}
+
+.cond{display:flex;align-items:center;gap:9px;margin-left:8px;flex:1 1 auto;min-width:0}
+.cond-label{font-size:12px;color:var(--t3);white-space:nowrap;flex:0 0 auto}
+.seg{display:flex;background:var(--brand-l2);border:1px solid var(--border);border-radius:var(--rf);padding:3px;gap:3px;flex:0 1 auto;min-width:0}
+.seg button{
+  padding:6px 14px;border-radius:var(--rf);font-size:12.5px;font-weight:600;color:var(--t2);
+  white-space:nowrap;transition:.18s;display:flex;align-items:center;gap:5px;
+}
+.seg button .dot{width:7px;height:7px;border-radius:50%;background:var(--t3);flex:0 0 auto}
+.seg button[data-cond="normal"] .dot{background:var(--tall)}
+.seg button[data-cond="mystery"] .dot{background:var(--accent)}
+.seg button.on{background:var(--surface);color:var(--t1);box-shadow:var(--sh1)}
+.seg button.on[data-cond="normal"]{color:var(--brand-d)}
+.seg button.on[data-cond="mystery"]{color:#8A5A00}
+
+.top-actions{display:flex;gap:8px;flex:0 0 auto}
+.ghost{
+  padding:7px 12px;border-radius:var(--r2);font-size:12.5px;color:var(--t2);
+  border:1px solid var(--border);background:var(--surface);transition:.16s;white-space:nowrap;
+}
+.ghost:hover{background:var(--brand-l2);border-color:#CFE0D7;color:var(--brand-d)}
+.ghost.on{background:var(--brand-l);border-color:#BEDCCB;color:var(--brand-d);font-weight:600}
+
+/* ============================================================
+   步骤条
+   ============================================================ */
+.steps{
+  height:62px;display:flex;align-items:center;gap:0;padding:0 16px;background:var(--surface);
+  border-bottom:1px solid var(--border);position:relative;z-index:20;overflow-x:auto;overflow-y:hidden;
+}
+.steps::-webkit-scrollbar{height:0}
+.stp{
+  display:flex;align-items:center;gap:8px;flex:0 0 auto;padding:0 4px;opacity:.42;transition:.25s;
+}
+.stp .num{
+  width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);
+  display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--t3);
+  background:var(--surface);transition:.25s;flex:0 0 auto;
+}
+.stp .tx{font-size:12.5px;font-weight:600;color:var(--t2);white-space:nowrap}
+.stp.done{opacity:1}
+.stp.done .num{background:var(--ok);border-color:var(--ok);color:#fff}
+.stp.done .num::before{content:"✓";font-size:13px}
+.stp.done .num span{display:none}
+.stp.cur{opacity:1}
+.stp.cur .num{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 0 0 4px rgba(46,125,91,.15)}
+.stp.cur .tx{color:var(--brand-d)}
+.stp .line{width:20px;height:2px;background:var(--border-2);border-radius:2px;margin:0 8px;flex:0 0 auto}
+
+/* ============================================================
+   v2 探究手帐层：阶段导航、研究任务卡、纸张与标本语言
+   ============================================================ */
+.steps{height:72px;padding:0 22px;background:#fbfaf6;border-bottom:1px solid #e6e1d5;box-shadow:0 2px 0 rgba(120,96,56,.04)}
+.steps::before{content:'探究路径';font-size:11px;letter-spacing:.12em;color:#9d927e;margin-right:18px;writing-mode:vertical-rl;opacity:.8}
+.stp{gap:7px;padding:0 2px;position:relative}
+.stp .num{width:30px;height:30px;border-color:#d9d1c1;background:#fffdf8;color:#9e947f}
+.stp .tx{font-size:12px;color:#817966}
+.stp.cur .num{background:var(--brand);border-color:var(--brand);box-shadow:0 0 0 5px rgba(46,125,91,.12)}
+.stp.cur .tx{color:var(--brand-d);font-weight:800}
+.stp.done .num{background:#5d9b73;border-color:#5d9b73}
+.stp .line{background:#ded7c9;width:28px}
+.mission-strip{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid #ded6c6;border-radius:16px;background:linear-gradient(110deg,#fffdf8,#f5f0e5);box-shadow:0 6px 18px rgba(90,70,40,.06);min-height:58px}
+.mission-mark{font-size:22px;line-height:1}
+.mission-copy{min-width:0;flex:1}.mission-copy b{display:block;color:#5a4630;font-size:13px}.mission-copy span{display:block;color:#887b67;font-size:11.5px;margin-top:2px}
+.mission-link{font-size:11px;color:#8a6b39;white-space:nowrap;border-bottom:1px dashed #cdbb99;padding-bottom:2px}
+.hypothesis-strip{display:flex;align-items:stretch;gap:12px;padding:12px 14px;border:1px solid #d6e3d7;border-radius:16px;background:#f3f8f1;box-shadow:inset 0 1px rgba(255,255,255,.75)}
+.hypo-label{width:118px;display:flex;flex-direction:column;justify-content:center;flex:0 0 auto}.hypo-label b{font-size:12px;color:#365b43}.hypo-label span{font-size:11px;color:#7c8d7c;margin-top:3px}
+.hypo-flow{display:flex;align-items:center;gap:7px;min-width:0;flex:1}.hypo-node{padding:8px 10px;border-radius:10px;background:#fff;border:1px solid #dbe6dc;font-size:11.5px;color:#536558;line-height:1.35;flex:1}.hypo-node strong{color:var(--brand-d);font-family:var(--mono)}.hypo-arrow{color:#9db0a0;font-size:14px}
+.prediction-choice{display:flex;gap:6px;flex:0 0 auto}.prediction-choice button{padding:8px 10px;border-radius:10px;border:1px solid #ccdccd;background:#fff;color:#507059;font-size:11px;font-weight:700}.prediction-choice button:hover,.prediction-choice button.selected{background:#2e7d5b;color:#fff;border-color:#2e7d5b}.prediction-choice button.wrong{background:#fff4e9;color:#a36b2e;border-color:#e7c48b}
+.phase-kicker{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#9b8d77;margin-bottom:3px}
+.cue{border-color:#cddfcf;background:linear-gradient(105deg,#eef7ef,#fbfaf4);box-shadow:0 8px 22px rgba(60,90,60,.08)}
+.cue-t{color:#345f43}.cue-num{background:#427e59}.cue-ges{border-color:#cbdcca;background:#fffdf8}
+.field-hd{background:rgba(255,253,248,.75);border-radius:12px;padding:7px 10px;margin:-2px 2px 0}
+.field-hd h2{color:#645a49}.field-hd .sub{color:#9a8e7b}.legend{font-size:10px;color:#9d927e}
+.pcard{background:linear-gradient(180deg,#fffefa,#f8f7f1);border-color:#d9d4c8;box-shadow:0 8px 20px rgba(79,67,46,.07)}
+.pcard.hot{border-color:#83ae91;box-shadow:0 0 0 4px rgba(86,143,101,.18),0 16px 36px rgba(67,94,70,.14)}
+.bloom{background:linear-gradient(180deg,#fbfdf8,#eef5eb);border-color:#d4dfd4}
+.bloom.cando{border-color:#93bb9c;background:#edf7ed;box-shadow:0 0 0 4px rgba(68,130,79,.10)}
+.tools{background:#fffdf8;border-color:#ded7c9;box-shadow:0 8px 22px rgba(73,58,36,.08)}
+.tool{background:#fffefa;border-color:#e0d9ca}.tool.on,.tool.droppable{border-color:#7faf88;background:#eef8ef;box-shadow:0 0 0 3px rgba(77,140,89,.12)}
+.side{display:flex;flex-direction:column;gap:10px}.card{background:#fffdf9;border-color:#ded7c9;box-shadow:0 7px 20px rgba(75,60,38,.06)}.card h3{color:#5e5342}.empty-note{color:#9b907d}
+.card:first-child{border-top:3px solid #83ad8b}.card:nth-child(2){border-top:3px solid #c8a76c}.card:nth-child(3){border-top:3px solid #9bb4c1}
+.modal-box{background:#fffdf8;border-color:#e0d8c9;box-shadow:0 24px 64px rgba(58,47,31,.24)}
+.modal-note,.keybox{background:#f3f6ee;border-color:#d6e3d4;color:#58705b}
+.gbtn{border-radius:11px}.gbtn.soft{background:#f0f6ef;border-color:#cfe1d1;color:#416d4a}.gbtn.amber{background:#fbf0d8;border-color:#e6c98e;color:#8c6123}
+.sortwrap{background:#fbfaf4;border-color:#dfd7c8}
+.sortfoot{background:#f2f7ef!important;border-color:#d3e1d0!important;color:#4e704f!important}
+.sample-check{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;margin-bottom:10px;border-radius:12px;background:#fffdf7;border:1px solid #e3dac8;color:#665945}.sample-check b{display:block;font-size:12px}.sample-check span{display:block;font-size:11px;color:#9a8d79;margin-top:2px}.sample-check small{color:#56805e;font-size:11px}.sample-actions{display:flex;gap:6px;flex:0 0 auto}.sample-actions button{padding:7px 10px;border-radius:8px;border:1px solid #d6c9b2;background:#fff;color:#80663c;font-size:11px;font-weight:700}.sample-actions button:hover{background:#f5eddc;border-color:#caaa70}
+@media (max-width:900px){.steps::before{display:none}.steps{padding:0 10px}.hypothesis-strip{flex-wrap:wrap}.hypo-label{width:auto}.hypo-flow{width:100%;order:3}.prediction-choice{margin-left:auto}.mission-link{display:none}}
+@media (max-width:720px){.mission-strip{min-height:52px}.hypo-flow{overflow-x:auto}.hypo-node{min-width:110px}.hypo-arrow{flex:0 0 auto}.prediction-choice{width:100%}.prediction-choice button{flex:1}.side{order:3}}
+
+/* v2 layout overrides */
+main{height:calc(100% - 128px)}
+.stage{grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:9px}
+body.ops .stage{grid-template-rows:auto auto auto minmax(150px,1fr) auto}
+.cue{position:relative;padding-top:20px}.cue .phase-kicker{position:absolute;left:82px;top:6px}.cue .cue-num{margin-top:2px}.cue .cue-body{padding-top:3px}
+@media (max-width:980px){main{height:calc(100% - 128px)}}
+@media (max-width:720px){
+  main,.stage,.mission-strip,.cue,.hypothesis-strip,.parents,.pcard,.fieldwrap,.tools{min-width:0;width:100%;max-width:100%}
+  .hypothesis-strip{overflow:hidden}
+  .hypo-flow{min-width:0}
+  .cue .phase-kicker{left:72px}
+}
+
+/* v2.1 修正：预测是“任务提示”，不能成为主舞台的大面板；田地在操作阶段也必须可见。 */
+#spotveil{display:none!important}
+.mission-strip{min-height:44px;height:44px;padding:6px 12px;border-radius:12px}
+.mission-mark{font-size:17px}.mission-copy b{font-size:12px}.mission-copy span{display:none}.mission-link{font-size:10px}
+.hypothesis-strip{height:58px;min-height:58px;padding:6px 10px;gap:8px;border-radius:12px}
+.hypo-label{width:104px}.hypo-label b{font-size:11px}.hypo-label span{font-size:10px}
+.hypo-flow{gap:4px}.hypo-node{padding:5px 7px;font-size:10px;line-height:1.2}.hypo-arrow{font-size:12px}
+.prediction-choice{gap:4px}.prediction-choice button{padding:6px 8px;font-size:10px}
+.stage{grid-template-rows:44px 92px 58px minmax(190px,auto) minmax(190px,1fr) auto;gap:8px}
+body.ops .stage{grid-template-rows:44px 92px 58px minmax(190px,auto) minmax(190px,1fr) auto}
+body.ops .bloom{--sh:88px;--bh:40px;padding:14px 4px 5px}
+.fieldwrap{background:linear-gradient(145deg,#fcfbf5,#f3f0e6);border-color:#d8d0be;box-shadow:0 10px 24px rgba(79,61,34,.07)}
+.fieldstage{min-height:190px}
+.pcard{padding:8px 10px}.pcard-hd{margin-bottom:4px}.pbody{min-height:0}
+.cue{padding:16px 12px 8px;box-shadow:0 7px 18px rgba(51,90,58,.10)}.cue .phase-kicker{left:68px;top:5px}.cue-num{width:38px;height:38px;font-size:17px}.cue-t{font-size:14px}.cue-s{font-size:11.5px}
+@media (max-width:720px){
+  .mission-strip{height:42px;min-height:42px}.hypothesis-strip{height:auto;min-height:58px}.hypo-flow{max-width:100%;overflow-x:auto}.stage,body.ops .stage{grid-template-rows:42px auto auto minmax(190px,auto) minmax(170px,1fr) auto}
+  .fieldstage{min-height:170px}.cue{padding-top:18px}
+}
+
+/* ============================================================
+   主区
+   ============================================================ */
+main{
+  height:calc(100% - 118px);display:grid;grid-template-columns:1fr 340px;gap:12px;padding:12px;
+}
+body.zen main{grid-template-columns:1fr}
+body.zen .side{display:none}
+
+/* ------- 舞台 ------- */
+/* 注意：第 3 行必须用 1fr（写成 0.58fr 这类带系数的 fr，浏览器分配的剩余空间会不足），
+   align-content:start 防止 auto 行被拉伸、抢走田地的高度 */
+.stage{
+  display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:10px;
+  align-content:start;min-width:0;min-height:0;
+  transition:grid-template-rows .38s cubic-bezier(.4,.02,.2,1);
+}
+/* 第 1–5 步：操作台模式 —— 亲本区自然撑高，田地退为待解锁的观察区 */
+body.ops .stage{grid-template-rows:auto auto minmax(150px,1fr) auto}
+
+/* ------- 操作指令卡（原来的小提示条升级为强引导）------- */
+.cue{
+  flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:11px 16px;border-radius:var(--r3);
+  background:linear-gradient(100deg,var(--brand-l),var(--brand-l2));
+  border:1px solid #CFE4D8;box-shadow:var(--sh1);position:relative;overflow:hidden;
+  transition:.25s;z-index:24;
+}
+.cue::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent 38%,rgba(255,255,255,.62) 50%,transparent 62%);
+  animation:cueShine 3.4s ease-in-out infinite;
+}
+@keyframes cueShine{0%{transform:translateX(-110%)}55%,100%{transform:translateX(110%)}}
+.cue-num{
+  width:46px;height:46px;border-radius:14px;flex:0 0 auto;display:grid;place-items:center;
+  background:var(--brand);color:#fff;font-size:20px;font-weight:800;line-height:1;
+  box-shadow:0 3px 11px rgba(46,125,91,.34);position:relative;z-index:1;
+}
+.cue-num i{font-style:normal;font-size:10px;opacity:.72;font-weight:700}
+.cue-body{flex:1 1 auto;min-width:0;position:relative;z-index:1}
+.cue-t{font-size:15.5px;font-weight:800;color:var(--brand-d);letter-spacing:.2px}
+.cue-s{font-size:12.5px;color:var(--t2);line-height:1.5;margin-top:1px}
+.cue-ges{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:var(--rf);
+  background:var(--surface);border:1.5px solid #BFDCCB;box-shadow:var(--sh1);position:relative;z-index:1;
+}
+.cue-ges .gi{font-size:20px;line-height:1}
+.cue-ges .gt{font-size:12.5px;font-weight:800;color:var(--brand-d);white-space:nowrap}
+.cue-ges .garr{position:relative;width:36px;height:14px;flex:0 0 auto}
+.cue-ges .garr::before{content:"";position:absolute;top:6px;left:0;right:0;height:2px;background:#9FCBB4;border-radius:2px}
+.cue-ges .garr::after{
+  content:"";position:absolute;top:7px;left:0;width:10px;height:10px;margin-top:-5px;border-radius:50%;
+  background:var(--brand);box-shadow:0 0 0 3px rgba(46,125,91,.16);animation:garrX 1.6s ease-in-out infinite;
+}
+@keyframes garrX{0%,100%{left:0}50%{left:26px}}
+.cue-ges.vert{flex-direction:row}
+.cue-ges.vert .garr{width:14px;height:32px}
+.cue-ges.vert .garr::before{top:0;bottom:0;left:6px;right:auto;width:2px;height:auto}
+.cue-ges.vert .garr::after{top:0;left:7px;margin-top:0;margin-left:-5px;animation:garrY 1.6s ease-in-out infinite}
+@keyframes garrY{0%,100%{top:0}50%{top:22px}}
+.cue-ges.tap .garr{width:20px}
+.cue-ges.tap .garr::before{display:none}
+.cue-ges.tap .garr::after{left:5px;top:7px;animation:tapPulse 1.4s ease-in-out infinite}
+@keyframes tapPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.9);opacity:.25}}
+.cue.warn{background:linear-gradient(100deg,var(--warn-l),#FFF6F6);border-color:#F6C9CA}
+.cue.warn .cue-num{background:var(--warn);box-shadow:0 3px 11px rgba(229,72,77,.34)}
+.cue.warn .cue-t{color:#A81E22}
+.cue.done .cue-num{background:var(--ok)}
+
+/* ------- 亲本区 / 操作台 ------- */
+.parents{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0}
+.pcard{
+  position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--r3);
+  padding:10px 12px;box-shadow:var(--sh1);transition:.28s cubic-bezier(.3,.02,.2,1);
+  display:flex;flex-direction:column;min-height:0;
+}
+.pcard.hit{border-color:var(--brand);box-shadow:0 0 0 3px rgba(46,125,91,.14),var(--sh2)}
+.pcard.hot{border-color:#A8D2BC;box-shadow:0 0 0 4px var(--ops-ring),0 18px 44px rgba(16,32,24,.16)}
+.pcard-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.sex{font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px;transition:.25s}
+.sex .s-ico{font-size:14px}
+.geno{font-family:var(--mono);font-size:11.5px;padding:2px 8px;border-radius:var(--rf);background:var(--brand-l2);color:var(--brand-d);font-weight:700;border:1px solid #DCEBE3;white-space:nowrap}
+.pcard[data-side="father"] .geno{background:var(--accent-l);color:#8A5A00;border-color:#F3DFC0}
+
+.pbody{display:flex;align-items:stretch;gap:14px;min-height:96px;position:relative;flex:1 1 auto;min-width:0}
+/* ⚠️ 这里曾另放一株"整株豌豆图"（.pplant）在花枝左边。
+   已移除：每根花枝自带土壤基座 + 花茎 + 叶 + 花，本身就是一株植物，
+   3 根并排就是一丛开花的豌豆；再叠一株缩略图只是重复的视觉噪音，
+   还白白吃掉 78px 横向空间（操作区本该更大）。 */
+.blooms{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1 1 auto;
+  align-content:end;min-width:0;padding-bottom:2px;
+}
+
+/* ── 花朵操作位：一朵花 = 一根花枝（土壤 → 花茎 → 顶端的花）──
+   为什么不做成"悬浮的花图标"：去雄、套袋、授粉的对象都是**长在植株上的花**。
+   把花画成脱离茎秆的图标，学生很难建立"我在处理植株上的这一朵花"的空间感，
+   套袋也就变成了"拖个东西到卡片上"而不是"把花罩起来"。
+   现在每个格子就是一根从土里长出来的花枝，操作时手直接作用在花头上。
+   --sh 花枝高度 / --bh 花头高度：两档（常规态、body.ops 放大态）统一驱动。 */
+.bloom{
+  --sh:74px; --bh:34px;
+  position:relative;display:flex;flex-direction:column;align-items:center;
+  /* padding-top 必须 ≥ 袋子高出花头的那一截（≈0.38×--bh），否则袋口会被卡片边框切掉 */
+  padding:12px 4px 5px;border-radius:var(--r3);border:1.5px dashed var(--border);
+  background:linear-gradient(180deg,#F7FCF9 0%,#EEF6F1 60%,#E4EFE8 100%);
+  transition:.24s cubic-bezier(.3,.02,.2,1);cursor:pointer;
+  touch-action:none;user-select:none;-webkit-user-select:none;min-width:0;
+}
+.sprig{position:relative;width:100%;height:var(--sh);flex:0 0 auto;transition:height .28s cubic-bezier(.3,.02,.2,1)}
+/* 土壤基座：花枝"长出来"的地方 */
+.soilbase{
+  position:absolute;left:50%;bottom:1px;transform:translateX(-50%);
+  width:44px;height:9px;border-radius:50%;
+  background:radial-gradient(ellipse at 50% 32%,#CBAD84,#9E8160 72%,#836A4C);
+  box-shadow:inset 0 2px 4px rgba(255,255,255,.34),0 2px 5px rgba(80,55,22,.24);
+}
+/* 花茎（含叶）：用 aspect-ratio 锁死 52:74，任何高度下都与 viewBox 1:1 映射，
+   绝不被横向拉伸（拉伸会让叶片变形成"刀片"）。 */
+.sprig .stem{
+  position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  height:var(--sh);aspect-ratio:52/74;display:block;overflow:visible;pointer-events:none;
+}
+.sprig .stem svg{width:100%;height:100%;display:block;overflow:visible}
+/* 花头：圆心精确落在花茎顶端（茎顶在 viewBox 的 y=16/74，故 top ≈ 0.02×--sh） */
+.bhead{
+  position:absolute;left:50%;top:1px;transform:translateX(-50%);
+  width:calc(var(--bh) * 1.25);height:var(--bh);
+  transition:transform .24s cubic-bezier(.3,.02,.2,1);
+}
+.bhead svg{width:100%;height:100%;display:block;overflow:visible}
+
+/* ── 纸袋：真正"罩住这朵花" ──
+   尺寸盖过整个花头、下沿包到花梗，半透明米黄纸 + 顶部扎口 + 褶线；
+   套上后花头被完全遮住，取下时袋子上浮淡出。 */
+.cover{
+  position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);
+  width:calc(var(--bh) * 1.34);height:calc(var(--bh) * 1.54);
+  border-radius:11px 11px 44% 44%;
+  background:linear-gradient(168deg,#FBF0D9 0%,#F2E0BB 46%,#E4CE9C 100%);
+  border:1.5px solid #C9A87A;
+  box-shadow:inset 0 -7px 11px rgba(140,105,55,.20),inset 0 4px 8px rgba(255,255,255,.5),0 5px 12px rgba(90,64,28,.26);
+  z-index:4;pointer-events:none;
+  animation:bagDrop .34s cubic-bezier(.2,.9,.3,1.3) both;
+}
+/* 袋口的捆扎带：贴在袋身上沿（不做成凸出的绳子，否则会顶出花枝卡片的边框） */
+.cover::before{
+  content:'';position:absolute;left:12%;right:12%;top:3px;height:7px;border-radius:4px;
+  background:linear-gradient(180deg,#E0C48C,#C9A87A);border:1px solid #B8935C;
+}
+/* 纸面褶线 */
+.cover::after{
+  content:'';position:absolute;left:16%;right:16%;top:30%;bottom:14%;
+  border-radius:6px 6px 40% 40%;border:1px dashed rgba(150,112,60,.42);
+}
+@keyframes bagDrop{from{transform:translate(-50%,-16px) scale(.72);opacity:0}to{transform:translate(-50%,0) scale(1);opacity:1}}
+/* 揭袋（第 4 步）：袋子可被上滑提走 */
+.cover.liftable{pointer-events:auto;cursor:grab;box-shadow:inset 0 -7px 11px rgba(140,105,55,.2),0 0 0 4px rgba(240,160,32,.24),0 5px 12px rgba(90,64,28,.26)}
+.cover.doff{animation:bagOff .3s cubic-bezier(.4,0,.7,1) forwards}
+@keyframes bagOff{to{transform:translate(-50%,-26px) scale(.8);opacity:0}}
+
+.bloom .b-tx{font-size:11px;font-weight:700;color:var(--t3);white-space:nowrap;transition:.24s;margin-top:3px}
+.bloom.cando{border-style:solid;border-color:#BEDCCB;background:var(--brand-l2);box-shadow:0 0 0 3px rgba(46,125,91,.10)}
+.bloom.cando .b-tx{color:var(--brand-d)}
+.bloom.hit{border-style:solid;border-color:var(--brand);background:var(--brand-l);box-shadow:0 8px 22px rgba(46,125,91,.22)}
+.bloom.done{border-style:solid;border-color:#CFE4D8;background:var(--brand-l)}
+.bloom.done .b-tx{color:var(--brand-d)}
+.bloom.pulse{animation:bloomPulse 1.6s ease-in-out infinite}
+@keyframes bloomPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,160,32,.55)}50%{box-shadow:0 0 0 10px rgba(240,160,32,0)}}
+/* 横向切割进度条：贴着花头的高度横穿过去，刀刃跟着进度走。
+   顶部偏移 = padding-top(6) + 花头顶部(1) + 花头高的一半 - 线宽一半，
+   用 --bh 参与计算，所以放大态下也始终对准花心。 */
+.stroke{
+  position:absolute;left:11px;right:11px;height:4px;border-radius:3px;
+  top:calc(11px + var(--bh) / 2);
+  background:rgba(46,125,91,.14);pointer-events:none;opacity:0;transition:opacity .15s;
+}
+.bloom.stroking .stroke{opacity:1}
+.stroke i{position:relative;display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,#6FCF9E,var(--brand));transition:width .05s linear}
+/* 刀锋：去雄（切花蕊）与授粉（涂抹）都用它，比手指更贴近真实动作 */
+.stroke i::after{content:"🔪";position:absolute;right:-11px;top:50%;transform:translateY(-50%);font-size:16px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.28))}
+
+/* 花朵被剪除的雄蕊 / 授粉后的花粉：用 SVG 局部动画表现 */
+.bloom .anthers{transform-box:fill-box;transform-origin:50% 10%;transition:.2s}
+.bloom.cut .anthers{animation:antherFall .62s cubic-bezier(.4,0,.6,1) forwards}
+@keyframes antherFall{to{transform:translateY(30px) rotate(42deg);opacity:0}}
+.bloom .pollenmark{opacity:0;transform-box:fill-box;transform-origin:center;transition:.25s}
+.bloom.pollenOn .pollenmark{opacity:1}
+.bloom.smeared .pollenmark{animation:pollenPop .45s cubic-bezier(.2,.9,.3,1.5) both}
+@keyframes pollenPop{from{transform:scale(.2)}to{transform:scale(1)}}
+
+/* ── 豆荚（第 6 步 · 收种子）──
+   授粉之后，花冠凋谢、子房膨大，在同一根花梗上结出豆荚 ——
+   所以豆荚就出现在花原来的位置（.bhead），只是换了个形态。拖到种子盆即可取种。 */
+.bhead.podmode{width:calc(var(--bh) * 0.74);height:calc(var(--bh) * 1.86);cursor:grab;z-index:3}
+.bhead.podmode .cover{display:none}
+/* 可拖拽提示：不叠 emoji（豆荚上再挂一个图标只会让人以为那里还结了别的东西），
+   改成整颗豆荚轻微"呼吸"+ 绿色光晕 —— 静止时也看得出它是能拿起来的。 */
+.bhead.podmode.cando{
+  animation:podBreath 1.7s ease-in-out infinite;
+  filter:drop-shadow(0 0 5px rgba(46,125,91,.45));
+}
+@keyframes podBreath{
+  0%,100%{transform:translateX(-50%) scale(1)}
+  50%{transform:translateX(-50%) scale(1.055)}
+}
+.bhead.podmode.hit{filter:drop-shadow(0 0 9px rgba(46,125,91,.6))}
+.bhead.podmode.hit{animation:none}
+.bhead.taken{animation:podTake .42s cubic-bezier(.4,0,.7,1) forwards}
+@keyframes podTake{to{transform:translate(-50%,-30px) scale(.5);opacity:0}}
+/* 花谢：花瓣飘落 → 子房膨大。用一层覆盖花瓣的"凋谢"效果表现 */
+.bloom.withering .bhead > svg{animation:petalFall .9s cubic-bezier(.4,0,.6,1) forwards}
+@keyframes petalFall{
+  0%{transform:none;opacity:1}
+  55%{transform:translateY(5px) scale(.86) rotate(6deg);opacity:.65}
+  100%{transform:translateY(16px) scale(.34) rotate(14deg);opacity:0}
+}
+/* 种子盆被投入豆荚时蹦一下 */
+.tool[data-tool="seed"].shake{animation:toolShake .42s cubic-bezier(.3,.02,.2,1)}
+@keyframes toolShake{0%,100%{transform:none}25%{transform:translateY(-5px) rotate(-3deg)}60%{transform:translateY(2px) rotate(2deg)}}
+
+.pflags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.pflag{
+  font-size:11px;padding:2px 9px;border-radius:var(--rf);background:var(--surface-2);
+  border:1px solid var(--border);color:var(--t3);font-weight:600;transition:.2s;
+}
+.pflag.on{background:var(--ok);border-color:var(--ok);color:#fff}
+
+/* ===== 操作台放大态：第 1–5 步把注意力锁到花朵与工具上 ===== */
+body.ops .pcard{padding:13px 15px}
+body.ops .pcard-hd{margin-bottom:8px}
+body.ops .sex{font-size:14.5px}
+body.ops .sex .s-ico{font-size:16px}
+body.ops .geno{font-size:12.5px;padding:3px 10px}
+body.ops .pbody{gap:16px}
+body.ops .blooms{gap:12px}
+/* 花枝整体放大：--sh / --bh 一提，花茎、花头、纸袋、刀刃进度条全部按比例跟着变 */
+body.ops .bloom{--sh:112px;--bh:52px;padding:21px 6px 7px;border-radius:var(--r3)}
+body.ops .bloom .b-tx{font-size:12.5px}
+body.ops .bloom .stroke{left:14px;right:14px;height:5px;top:calc(19px + var(--bh) / 2)}
+body.ops .pflags{margin-top:10px}
+body.ops .pflag{font-size:11.5px;padding:3px 11px}
+
+/* ------- 田地：4×4 十六宫格 · 2.5D 等距 ------- */
+.fieldwrap{
+  flex:1 1 auto;min-height:0;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#FCFEFD,#EFF5F1);
+  border:1px solid var(--border);border-radius:var(--r3);
+  padding:10px 12px 12px;box-shadow:var(--sh1);position:relative;overflow:hidden;
+  transition:opacity .4s cubic-bezier(.4,.02,.2,1);
+}
+.field-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px;flex:0 0 auto;position:relative;z-index:3}
+.field-hd h2{margin:0;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.field-hd .sub{font-size:11.5px;color:var(--t3)}
+.legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.lg{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--t2);font-weight:600}
+.lg i{width:11px;height:11px;border-radius:3px;display:block}
+
+/* 等距投影舞台（无透视 = 纯轴测，天然等距，且可安全做整体缩放） */
+.fieldstage{flex:1 1 auto;min-height:0;position:relative;overflow:hidden}
+/* 绝对定位 + translate(-50%,-50%) 居中：内容比容器大时也不会被挤到容器外裁掉 */
+.fieldzoom{
+  position:absolute;left:50%;top:50%;width:max-content;
+  /* 上内边距 > 下内边距：投影后内容整体偏上（顶端植株要抬头 66-44≈22px），
+     盒子中心才与内容中心重合。该值同时被 fitField 读取参与缩放计算。 */
+  padding:46px 34px 20px;
+  transform:translate(-50%,-50%) scale(var(--fs,1));
+  will-change:transform;
+}
+.field{
+  --tile:112px;--gap:10px;
+  display:grid;
+  grid-template-columns:repeat(4,var(--tile));
+  grid-template-rows:repeat(4,var(--tile));
+  gap:var(--gap);
+  transform:rotateX(var(--iso-x)) rotateZ(45deg);
+  transform-style:preserve-3d;
+}
+.cell{position:relative;transform-style:preserve-3d;cursor:pointer}
+.soil,.slab1,.slab2{position:absolute;inset:0;border-radius:9px;pointer-events:none}
+.slab2{transform:translateZ(-20px);background:var(--soil-d);box-shadow:0 16px 30px rgba(28,18,8,.3)}
+.slab1{transform:translateZ(-10px);background:var(--soil-3)}
+.soil{
+  background:
+    radial-gradient(circle at 26% 32%,rgba(255,255,255,.22) 0 2.4px,transparent 2.4px),
+    radial-gradient(circle at 70% 64%,rgba(0,0,0,.13) 0 3px,transparent 3px),
+    radial-gradient(circle at 44% 82%,rgba(255,255,255,.14) 0 2px,transparent 2px),
+    linear-gradient(150deg,var(--soil-2),var(--soil));
+  background-size:18px 18px,22px 22px,14px 14px,100% 100%;
+  box-shadow:inset 0 0 0 2px rgba(120,90,58,.45),inset 0 3px 12px rgba(255,255,255,.2);
+  transition:.22s;
+}
+/* 空穴 */
+.cell .hole{
+  position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;
+  background:radial-gradient(circle at 50% 38%,rgba(38,24,10,.52),rgba(38,24,10,.26));
+  box-shadow:inset 0 3px 7px rgba(0,0,0,.4);opacity:0;transition:.25s;pointer-events:none;
+}
+body.sowing .cell.empty .hole{opacity:1}
+body.sowing .cell.empty .hole{animation:holePulse 1.6s ease-in-out infinite}
+@keyframes holePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
+/* 落点 / 可放置反馈 */
+.cell.droppable .soil{box-shadow:inset 0 0 0 3px rgba(46,125,91,.75),inset 0 3px 12px rgba(255,255,255,.2)}
+.cell.hit .soil{box-shadow:inset 0 0 0 4px var(--brand),inset 0 3px 12px rgba(255,255,255,.24)}
+/* ⚠️ 这里曾按"全高 / 全矮 / 混合"给每格地块套上不同颜色的光环，已移除。
+   那等于用颜色替学生把结论念出来了：学生还没比较茎高，地块就已经剧透了这穴的表型，
+   "观察茎高"这个核心观察任务直接失效。现在所有成株格子统一用中性描边，
+   只表示"这穴已经长成"，高矮一律靠眼睛比。 */
+.cell.mature .soil{box-shadow:inset 0 0 0 2.5px rgba(110,132,120,.5),inset 0 3px 12px rgba(255,255,255,.2)}
+
+/* 植株立牌：反向旋转抵消，使 2.5D 场景里的植物始终直立面向观众。
+   ── 为什么必须加 translateZ（这里踩过坑，写清楚）──
+   ① 立牌是"屏幕平行面"，地块是倾斜面，两者在屏幕上相交；
+   ② 立牌上任一点的屏幕深度恒等于它"落点"的深度（偏移算出恰为 0）
+      → 与自家地块完全等深度，BSP 排序不确定，植株会被土壤盖住 → 整片田看不见苗；
+   ③ 更隐蔽的是：即使做"零屏幕位移的法线前推"，也不够。立牌越低（屏幕 Y 越大），
+      它背后那块地表越靠近镜头。地表深度差 = 1.483 × 屏幕下移量（该系数来自
+      M_field 的逆变换：屏幕 (X,Y) 对应田地局部 (0.707X±1.266Y)，深度取 0.586·(Δx+Δy)）；
+   ④ 所以前推量要盖过「立牌最低点背后的地表深度差」。本处最低点≈落点本身，
+      落点的屏幕下移最多 ≈7px（PLANT_POS 的第三个落点）→ 需要 >10.5，取 26 留足余量；
+      上限是相邻格的深度差 71.5（田地局部单位），26 远小于它，不会穿到前排地块之上。 */
+.plw{position:absolute;width:0;height:0;transform:rotateZ(-45deg) rotateX(var(--iso-xn)) translateZ(26px)}
+.pl{position:absolute;left:0;bottom:0;width:42px;margin-left:-21px;height:66px}
+.pl svg{width:100%;height:100%;display:block;overflow:visible;transform-origin:bottom center}
+.pl.grow svg{animation:sprout .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes sprout{from{transform:scaleY(.1) scaleX(.72);opacity:.15}to{transform:scaleY(1) scaleX(1);opacity:1}}
+
+/* ── 格位元素一律"画在地面平面内"，不做立牌 ──
+   踩坑记录：立牌是"屏幕平行面"，和倾斜的地块面相交；它的屏幕深度恒等于落点深度，
+   必须靠 translateZ 硬推。而地块越往下（屏幕 Y 越大）越靠近镜头（深度差 = 1.484×Y），
+   所以推少了被自家土壤吃掉、推多了又浮到前排地块之上，非常脆弱
+   （实测：推 60px 完全看不见，推到 900px 才露出来）。
+   改法：把元素放进地块自己所在的平面 → 与土壤共面，且 DOM 在土壤之后 ⇒ 永远可见，
+   任何前推都不需要。再用 rotateZ(-45deg) scaleY(1/cos56°) 抵消平面形变
+   （该组合的"平面→屏幕"合成映射恰为恒等变换），屏幕上仍是正立、不压缩的文字。
+   ⚠️ scaleY 的倒数与 --iso-x 绑定：cos(56°)≈0.559 → 1.788。改 --iso-x 必须同步改这里。
+   （本文件曾用同一套技术做"高茎/矮茎"格位名牌，现已随颜色区分一并移除 ——
+   现在每格只有一个中性编号。） */
+.idxw{position:absolute;left:15%;top:15%}
+.cell .idx{
+  position:absolute;left:0;top:0;
+  transform:translate(-50%,-50%) rotateZ(-45deg) scaleY(1.788);
+  font-size:9.5px;font-weight:800;color:rgba(255,255,255,.92);
+  background:rgba(58,38,18,.42);padding:0 5px;border-radius:var(--rf);white-space:nowrap;
+}
+
+/* ══════════ 分类展示区（把子代从田里"拔出来"分成两堆）══════════
+   为什么要做这一步：本课的核心动作是"观察茎高、数比例"。
+   如果由程序直接甩出 24∶24，学生跳过了"观察—计数"这个认知环节；
+   而 48 株散落在 16 格里、还带 2.5D 投影，肉眼看不清也数不准。
+   分类展示把 48 株按表型搬到同一平面上并排摆好，既保住了"亲手分类"的动作，
+   又让计数变得可完成。 */
+.sortwrap{
+  position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;gap:8px;
+  padding:4px 2px 2px;
+  opacity:0;pointer-events:none;transform:scale(.975);
+  transition:opacity .34s,transform .34s cubic-bezier(.34,1.06,.5,1);
+}
+body.sorting .sortwrap{opacity:1;pointer-events:auto;transform:none}
+body.sorting .fieldzoom{opacity:0;pointer-events:none}
+.fieldzoom{transition:opacity .3s}
+/* 拔苗：点击分类时，田地里的植株先整体向上弹起、缩小、淡出 */
+.cell .pl.plucking{animation:pluckOut .46s cubic-bezier(.4,0,.6,1) both}
+@keyframes pluckOut{
+  0%{transform:translateY(0) scale(1);opacity:1}
+  100%{transform:translateY(-34px) scale(.42);opacity:0}
+}
+
+.sortcols{display:grid;grid-template-columns:1fr 1fr;gap:9px;flex:1 1 auto;min-height:0}
+.sortcol{
+  display:flex;flex-direction:column;min-height:0;
+  border-radius:var(--r3);border:1.5px solid var(--border);
+  background:linear-gradient(180deg,#FCFEFD,#F0F7F3);padding:7px 9px 8px;
+  animation:fadeUp .4s both;
+}
+.sortcol:first-child{animation-delay:.05s}
+.sortcol:last-child{animation-delay:.12s}
+.sortcol-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;flex:0 0 auto}
+.sortcol-hd .nm{font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:6px;color:var(--t1)}
+.sortcol-hd .n{font-size:11.5px;font-weight:700;color:var(--t3);line-height:1;letter-spacing:.3px}
+.sortcol-hd .n small{font-size:10.5px;font-weight:700;color:var(--t3);margin-left:2px}
+/* 8 列 × 3 行 = 24 株恰好摆满，高矮放在同一行尺度下直接可比 */
+.sortgrid{
+  display:grid;grid-template-columns:repeat(8,1fr);grid-auto-rows:1fr;gap:4px 2px;
+  align-content:stretch;flex:1 1 auto;min-height:0;overflow:hidden;
+}
+.ps{position:relative;min-width:0;min-height:0;opacity:0}
+.ps svg{width:100%;height:100%;display:block;overflow:visible}
+.ps.in{animation:psIn .44s cubic-bezier(.2,.9,.3,1.28) both}
+@keyframes psIn{from{opacity:0;transform:translateY(-26px) scale(.66)}to{opacity:1;transform:none}}
+.sortcol.empty .sortgrid{display:none}
+.sortcol .colnote{
+  flex:1 1 auto;display:none;align-items:center;justify-content:center;text-align:center;
+  font-size:12px;color:var(--t3);font-weight:600;padding:10px;
+}
+.sortcol.empty .colnote{display:flex}
+
+/* 底部统计条 */
+.sortfoot{
+  flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+  padding:8px 14px;border-radius:var(--r3);border:1.5px solid #CFE4D8;
+  background:linear-gradient(180deg,#F5FBF8,#E8F4EE);box-shadow:var(--sh1);
+  animation:fadeUp .4s .2s both;
+}
+.sortfoot .it{display:flex;align-items:baseline;gap:5px;font-size:12.5px;font-weight:700;color:var(--t2)}
+.sortfoot .it b{font-family:var(--mono);font-size:19px;font-weight:800;color:var(--brand-d);line-height:1}
+.sortfoot .sep{width:1px;height:22px;background:#CFE4D8}
+.sortfoot .it.ratio b{color:#B07A12}
+.sortfoot .note{font-size:11px;color:var(--t3);font-weight:600}
+
+/* 待解锁遮罩（第 1–5 步田地不可用） */
+body.ops .fieldwrap{opacity:.46}
+.field-lock{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;
+  display:none;align-items:center;gap:9px;padding:11px 22px;border-radius:var(--rf);
+  background:rgba(255,255,255,.95);border:1.5px dashed #B9C9C1;box-shadow:var(--sh2);
+  font-size:13.5px;font-weight:800;color:var(--t2);white-space:nowrap;pointer-events:none;
+}
+.field-lock .lk{font-size:16px}
+body.ops .field-lock{display:flex;animation:fadeUp .4s .1s both}
+
+/* 通用上浮淡入：绝不能带 translateX，否则侧栏卡片/弹窗会被整体左移 */
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ============================================================
+   注意力引导：聚光灯 + 虚拟手指
+   ============================================================ */
+#spotveil{
+  position:fixed;z-index:14;pointer-events:none;border-radius:20px;opacity:0;
+  box-shadow:0 0 0 9999px rgba(12,22,17,.34);
+  transition:left .4s cubic-bezier(.4,.02,.2,1),top .4s cubic-bezier(.4,.02,.2,1),
+             width .4s cubic-bezier(.4,.02,.2,1),height .4s cubic-bezier(.4,.02,.2,1),opacity .3s;
+}
+#spotveil.on{opacity:1}
+body.zen #spotveil{opacity:0!important}
+
+#handHint{
+  position:fixed;left:0;top:0;z-index:70;pointer-events:none;font-size:30px;line-height:1;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.34));opacity:0;transition:opacity .3s;will-change:transform;
+}
+#handHint.on{opacity:1}
+#handHint.drag{animation:handDrag 2.1s cubic-bezier(.45,.05,.55,.95) infinite}
+@keyframes handDrag{
+  0%{transform:translate(var(--x1),var(--y1));opacity:0}
+  14%{opacity:1}
+  60%{transform:translate(var(--x2),var(--y2));opacity:1}
+  76%{opacity:0}
+  100%{transform:translate(var(--x1),var(--y1));opacity:0}
+}
+#handHint.sweepX{animation:handSweepX 1.7s ease-in-out infinite}
+@keyframes handSweepX{
+  0%,100%{transform:translate(calc(var(--x1) - 32px),var(--y1))}
+  50%{transform:translate(calc(var(--x1) + 32px),var(--y1))}
+}
+#handHint.sweepY{animation:handSweepY 1.7s ease-in-out infinite}
+@keyframes handSweepY{
+  0%,100%{transform:translate(var(--x1),calc(var(--y1) + 24px))}
+  50%{transform:translate(var(--x1),calc(var(--y1) - 24px))}
+}
+#handHint.tap{animation:handTap 1.5s ease-in-out infinite}
+@keyframes handTap{0%,100%{transform:translate(var(--x1),var(--y1)) scale(1)}50%{transform:translate(var(--x1),var(--y1)) scale(1.28)}}
+
+
+/* ------- 工具架 ------- */
+.tools{
+  flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:9px 12px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r3);box-shadow:var(--sh1);
+  position:relative;z-index:24;transition:.28s cubic-bezier(.3,.02,.2,1);
+}
+.tools-lb{font-size:11.5px;color:var(--t3);font-weight:600;margin-right:2px;white-space:nowrap;transition:.25s}
+.tool{
+  position:relative;display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r2);
+  border:1px solid var(--border);background:var(--surface-2);transition:.2s cubic-bezier(.3,.02,.2,1);
+  touch-action:none;user-select:none;-webkit-user-select:none;flex:0 0 auto;min-height:44px;
+}
+.tool .t-ico{font-size:17px;line-height:1;pointer-events:none;transition:.2s}
+.tool .t-tx{font-size:12.5px;font-weight:600;color:var(--t2);pointer-events:none;white-space:nowrap;transition:.2s}
+.tool:hover:not(.lock){border-color:#BEDCCB;background:var(--brand-l2);transform:translateY(-1px);box-shadow:var(--sh1)}
+.tool.sel{border-color:var(--brand);background:var(--brand-l);box-shadow:0 0 0 3px rgba(46,125,91,.15)}
+.tool.sel .t-tx{color:var(--brand-d);font-weight:700}
+.tool.lock{opacity:.34;cursor:not-allowed}
+.tool.pulse{animation:toolPulse 1.3s ease-in-out infinite}
+@keyframes toolPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,160,32,.55)}50%{box-shadow:0 0 0 9px rgba(240,160,32,0)}}
+.tool .badge{
+  position:absolute;top:-6px;right:-6px;background:var(--accent);color:#fff;font-size:10px;
+  font-weight:800;padding:1px 6px;border-radius:var(--rf);
+}
+.tool .fill{position:absolute;left:6px;right:6px;bottom:4px;height:3px;border-radius:2px;background:#E9EFEB;overflow:hidden}
+.tool .fill i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+/* 序号角标：告诉学生"第几个用" */
+.tool .ord{
+  position:absolute;top:-7px;left:-7px;width:19px;height:19px;border-radius:50%;
+  background:var(--t3);color:#fff;font-size:10.5px;font-weight:800;display:grid;place-items:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.2);transition:.2s;
+}
+.tool.sel .ord,.tool.nextup .ord{background:var(--brand)}
+.tool.lock .ord{background:#C3CEC8}
+/* 操作台模式下工具按钮明显放大 */
+body.ops .tools{gap:12px;padding:12px 15px;box-shadow:0 6px 22px rgba(16,32,24,.1);border-color:#CFE0D6}
+body.ops .tools-lb{font-size:12.5px}
+body.ops .tool{padding:12px 20px;min-height:56px;border-radius:var(--r3);gap:9px}
+body.ops .tool .t-ico{font-size:25px}
+body.ops .tool .t-tx{font-size:14px}
+body.ops .tool.nextup{border-color:#EFCB8A;background:#FFFBF2;box-shadow:0 0 0 3px rgba(240,160,32,.16)}
+
+.gbtn{
+  padding:9px 18px;border-radius:var(--r2);background:var(--brand);color:#fff;font-size:13px;font-weight:700;
+  box-shadow:0 2px 8px rgba(46,125,91,.28);transition:.16s;min-height:44px;white-space:nowrap;
+}
+.gbtn:hover:not(:disabled){background:var(--brand-d);transform:translateY(-1px);box-shadow:0 4px 14px rgba(46,125,91,.34)}
+.gbtn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.gbtn.amber{background:var(--accent);box-shadow:0 2px 8px rgba(240,160,32,.3)}
+.gbtn.amber:hover:not(:disabled){background:#D98D10}
+.gbtn.soft{background:var(--surface);color:var(--brand-d);border:1px solid #BEDCCB;box-shadow:none}
+.gbtn.soft:hover:not(:disabled){background:var(--brand-l)}
+.tools-spacer{flex:1 1 auto}
+
+/* ------- 拖拽幽灵 ------- */
+.ghost-el{
+  position:fixed;left:0;top:0;z-index:999;pointer-events:none;
+  margin-left:-34px;margin-top:-46px;padding:8px 15px;border-radius:var(--r2);
+  background:var(--brand);color:#fff;font-size:12.5px;font-weight:700;box-shadow:var(--sh3);
+  display:flex;align-items:center;gap:7px;transform:translate(-999px,-999px);
+}
+body.dragging{cursor:grabbing}
+body.dragging .cell:not(.occupied),
+body.dragging .bloom,
+body.dragging .pcard{transition:.15s}
+.droppable{outline:2px dashed var(--brand);outline-offset:2px}
+
+/* ============================================================
+   右栏
+   ============================================================ */
+.side{display:flex;flex-direction:column;gap:11px;min-height:0;overflow-y:auto;padding-right:2px}
+.side::-webkit-scrollbar{width:6px}
+.side::-webkit-scrollbar-thumb{background:#D3DED8;border-radius:3px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r3);padding:12px 13px;box-shadow:var(--sh1);flex:0 0 auto}
+.card h3{
+  margin:0 0 10px;font-size:12.5px;font-weight:700;color:var(--t1);
+  display:flex;align-items:center;gap:6px;letter-spacing:.2px;
+}
+.card h3 .h-ico{font-size:14px}
+
+.counts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.cnt{border-radius:var(--r2);padding:8px 10px;text-align:center;border:1px solid var(--border);background:var(--surface-2)}
+.cnt.tall{background:var(--tall-l);border-color:#CFE9D9}
+.cnt.dwarf{background:var(--dwarf-l);border-color:#F2DFC4}
+.cnt .cn{font-size:26px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums}
+.cnt.tall .cn{color:var(--tall)}
+.cnt.dwarf .cn{color:var(--dwarf)}
+.cnt .cl{font-size:11.5px;color:var(--t2);font-weight:600}
+.cnt.pop .cn{animation:numPop .45s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes numPop{0%{transform:scale(1)}45%{transform:scale(1.22)}100%{transform:scale(1)}}
+
+.ratio-strip{
+  display:flex;align-items:center;justify-content:center;gap:10px;padding:9px;border-radius:var(--r2);
+  background:var(--brand-l2);border:1px solid var(--border);margin-bottom:10px;
+}
+.ratio-strip .rv{font-family:var(--mono);font-size:22px;font-weight:800;color:var(--brand-d);font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.ratio-strip .rl{font-size:11.5px;color:var(--t3);font-weight:600}
+.ratio-strip.alert{background:var(--warn-l);border-color:#F6C9CA;animation:shake .5s cubic-bezier(.36,.07,.19,.97) 2}
+.ratio-strip.alert .rv{color:var(--warn)}
+@keyframes shake{10%,90%{transform:translateX(-3px)}20%,80%{transform:translateX(5px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+
+.chartbox{position:relative;margin-bottom:8px}
+.chartbox svg{width:100%;height:auto;display:block}
+.cmp{display:flex;flex-direction:column;gap:6px}
+.cmprow{display:flex;align-items:center;gap:8px;font-size:11.5px}
+.cmprow .ck{width:52px;color:var(--t3);font-weight:600;flex:0 0 auto}
+.cmprow .cbar{flex:1 1 auto;height:9px;border-radius:var(--rf);background:var(--border-2);overflow:hidden;display:flex}
+.cmprow .cbar i{display:block;height:100%}
+.cmprow .cv{width:70px;text-align:right;font-family:var(--mono);font-weight:700;color:var(--t1);flex:0 0 auto}
+.cmprow.alert .cv{color:var(--warn)}
+
+.empty-note{font-size:12px;color:var(--t3);text-align:center;padding:14px 6px;line-height:1.7}
+
+/* ------- 结论区 ------- */
+.verdict{display:flex;gap:9px;align-items:flex-start;padding:10px;border-radius:var(--r2);margin-bottom:10px;font-size:12.5px;line-height:1.6}
+.verdict.ok{background:var(--brand-l);border:1px solid #CFE4D8;color:var(--brand-d)}
+.verdict.bad{background:var(--warn-l);border:1px solid #F6C9CA;color:#8F1A1E}
+.verdict .v-ico{font-size:16px;flex:0 0 auto;line-height:1.3}
+.verdict b{font-weight:800}
+
+.qbox{border-top:1px dashed var(--border);padding-top:10px;margin-top:2px}
+.qbox .q{font-size:12.5px;font-weight:700;margin-bottom:8px;line-height:1.6}
+.opt{
+  display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border-radius:var(--r2);border:1px solid var(--border);
+  background:var(--surface-2);margin-bottom:7px;transition:.16s;font-size:12.5px;line-height:1.55;text-align:left;width:100%;
+}
+.opt:hover:not(.locked){border-color:#BEDCCB;background:var(--brand-l2)}
+.opt .ok-ico{width:17px;height:17px;border-radius:50%;border:1.5px solid var(--border);flex:0 0 auto;margin-top:1px;display:grid;place-items:center;font-size:10px;font-weight:800;color:transparent}
+.opt.right{border-color:var(--ok);background:var(--brand-l)}
+.opt.right .ok-ico{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--warn);background:var(--warn-l)}
+.opt.wrong .ok-ico{background:var(--warn);border-color:var(--warn);color:#fff}
+.opt:disabled{cursor:default;opacity:1}
+
+.reveal{
+  margin-top:10px;padding:11px;border-radius:var(--r2);background:var(--accent-l);border:1px solid #F3DFC0;
+  font-size:12.5px;line-height:1.7;color:#6B4B22;animation:fadeUp .35s ease-out both;
+}
+.reveal b{color:#8A5A00}
+.summary{
+  margin-top:10px;padding:11px;border-radius:var(--r2);background:linear-gradient(120deg,var(--brand-l),var(--brand-l2));
+  border:1px solid #CFE4D8;font-size:12.5px;line-height:1.75;color:var(--brand-d);animation:fadeUp .35s ease-out both;
+}
+.summary b{font-weight:800}
+.nextbtn{width:100%;margin-top:10px}
+
+/* ============================================================
+   Toast / Modal
+   ============================================================ */
+/* 提示气泡：落在"田地菱形下顶点"与"工具架"之间那条空带里（约 787–840px），
+   抬太低会压住前排子代，放太高会挡住工具架。同时限制最多 2 条、2 秒即散。 */
+#toasts{position:fixed;left:50%;bottom:66px;transform:translateX(-50%);z-index:900;display:flex;flex-direction:column;gap:7px;align-items:center;pointer-events:none}
+.toast{
+  padding:8px 15px;border-radius:var(--rf);background:rgba(28,42,36,.9);color:#fff;font-size:12.5px;font-weight:600;
+  box-shadow:var(--sh3);display:flex;align-items:center;gap:8px;max-width:min(64vw,500px);line-height:1.4;
+  animation:toastIn .28s cubic-bezier(.2,.9,.3,1.2) both;
+}
+.toast.bad{background:rgba(178,34,38,.95)}
+.toast.good{background:rgba(26,140,96,.95)}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+.toast.out{animation:toastOut .22s ease-in both}
+@keyframes toastOut{to{opacity:0;transform:translateY(8px) scale(.96)}}
+
+.modal{position:fixed;inset:0;background:rgba(20,32,27,.5);display:none;place-items:center;z-index:950;padding:20px}
+.modal.on{display:grid;animation:fadeIn .2s both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{
+  background:var(--surface);border-radius:var(--r4);max-width:620px;width:100%;max-height:86vh;overflow-y:auto;
+  padding:24px 26px;box-shadow:var(--sh3);animation:fadeUp .28s cubic-bezier(.2,.9,.3,1.1) both;
+}
+.modal-box h2{margin:0 0 4px;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
+.modal-box .msub{margin:0 0 18px;font-size:12.5px;color:var(--t3)}
+.hypo{display:flex;gap:11px;padding:11px 13px;border-radius:var(--r2);background:var(--surface-2);border:1px solid var(--border);margin-bottom:9px}
+.hypo .hn{width:24px;height:24px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800;flex:0 0 auto}
+.hypo .ht{font-size:13px;line-height:1.65;color:var(--t1)}
+.hypo .ht em{font-style:normal;color:var(--brand-d);font-weight:700}
+.flow4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0 4px}
+.f4{padding:10px 8px;border-radius:var(--r2);background:var(--brand-l2);border:1px solid var(--border);text-align:center}
+.f4 .f4n{font-size:11px;color:var(--t3);font-weight:700;margin-bottom:4px}
+.f4 .f4t{font-size:12.5px;font-weight:700;color:var(--brand-d);line-height:1.4}
+.modal-note{margin-top:16px;padding:12px;border-radius:var(--r2);background:var(--accent-l);border:1px solid #F3DFC0;font-size:12.5px;line-height:1.7;color:#6B4B22}
+.modal-close{width:100%;margin-top:18px}
+
+/* ------- 引导弹窗 Tab ------- */
+.gtabs{display:flex;gap:6px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--rf);padding:3px;margin:0 0 16px}
+.gtab{
+  flex:1 1 0;padding:9px 8px;border-radius:var(--rf);font-size:13px;font-weight:700;color:var(--t2);
+  transition:.18s;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;
+}
+.gtab:hover{color:var(--brand-d)}
+.gtab.on{background:var(--surface);color:var(--brand-d);box-shadow:var(--sh1)}
+.gpane{display:none}
+.gpane.on{display:block;animation:fadeUp .26s both}
+/* 任务卡 */
+.task3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px}
+.tk{border:1px solid var(--border);border-radius:var(--r3);padding:13px 12px;background:var(--surface-2);position:relative}
+.tk .tkn{
+  width:30px;height:30px;border-radius:10px;background:var(--brand);color:#fff;font-size:14px;font-weight:800;
+  display:grid;place-items:center;margin-bottom:9px;
+}
+.tk .tkt{font-size:13px;font-weight:800;color:var(--t1);margin-bottom:5px;line-height:1.4}
+.tk .tks{font-size:12px;color:var(--t2);line-height:1.6}
+.tk .tkg{font-size:22px;position:absolute;right:11px;top:11px;opacity:.5}
+/* 手势说明卡 */
+.ges3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.gs{border:1px solid var(--border);border-radius:var(--r3);padding:12px;background:var(--surface-2);text-align:center}
+.gs .gsi{font-size:26px;margin-bottom:6px}
+.gs .gst{font-size:12.5px;font-weight:800;color:var(--brand-d);margin-bottom:4px}
+.gs .gss{font-size:11.5px;color:var(--t2);line-height:1.55}
+/* 关键框：学生会踩的坑 */
+.keybox{
+  margin-top:14px;padding:12px 13px;border-radius:var(--r2);background:var(--info-l);
+  border:1px solid #CFE0F8;font-size:12.5px;line-height:1.75;color:#1F4A87;
+}
+.keybox b{font-weight:800}
+
+/* ------- 第 6–8 步：实验台收窄，把高度全让给田地 -------
+   播种 / 生长 / 看结果这三个阶段，人眼盯的是 48 株子代的分布，
+   操作台的使命已经结束 → 亲本卡压成一条"亲本速览"，指令卡和工具架同步瘦身。
+   腾出的 ~160px 全部给田地：--fs 从 0.81 涨到 ~1.16，苗和地块都明显变大。 */
+body.grown .parents{gap:10px}
+body.grown .pcard{
+  flex-direction:row;align-items:center;gap:14px;padding:6px 14px;min-height:54px;
+}
+body.grown .pcard-hd{margin-bottom:0;flex:0 0 auto;gap:8px}
+body.grown .pbody{min-height:0;flex:1 1 auto;align-items:center;gap:10px}
+/* 第 7 步起操作台使命结束：花枝整体收起，亲本卡只留一行状态芯片 */
+body.grown .blooms{display:none}
+body.grown .pflags{margin-top:0;flex:0 0 auto}
+body.grown .cue{padding:7px 14px;gap:11px}
+body.grown .cue-num{width:32px;height:32px;font-size:15px;border-radius:10px}
+body.grown .cue-num i{display:none}
+body.grown .cue-t{font-size:14px}
+body.grown .cue-s{font-size:11.5px;margin-top:0}
+body.grown .cue-ges{padding:5px 11px}
+body.grown .cue-ges .gi{font-size:16px}
+body.grown .cue-ges .gt{font-size:11.5px}
+body.grown .tools{padding:7px 12px;gap:10px}
+body.grown .tools-lb{font-size:11.5px}
+body.grown .tool{padding:7px 15px;min-height:42px;gap:7px}
+body.grown .tool .t-ico{font-size:19px}
+body.grown .tool .t-tx{font-size:12.5px}
+body.grown .tool .ord{top:-6px;left:-6px}
+body.grown .gbtn{padding:8px 18px;font-size:13px}
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width:1180px){
+  main{grid-template-columns:1fr 300px}
+  .brand p{display:none}
+  body.ops .bloom{--sh:100px;--bh:45px;padding:19px 5px 6px}
+}
+@media (max-width:980px){
+  html,body{height:auto;min-height:100%}
+  body{overflow:auto}
+  main{grid-template-columns:1fr;grid-template-rows:auto auto;height:auto;overflow:visible}
+  .stage{min-height:640px}
+  .stage,body.ops .stage{grid-template-rows:auto auto minmax(300px,1fr) auto}
+  .side{max-height:none;overflow:visible}
+  body.ops .fieldwrap{opacity:1}
+  .field-lock{display:none!important}
+  #spotveil{display:none}
+}
+@media (max-width:720px){
+  .topbar{flex-wrap:wrap;height:auto;padding:10px 12px;gap:10px}
+  .cond{order:3;width:100%;margin-left:0;overflow-x:auto}
+  .steps{height:auto;padding:10px 12px}
+  .parents{grid-template-columns:1fr}
+  body.ops .bloom{--sh:90px;--bh:41px;padding:17px 5px 6px}
+  .tools{flex-wrap:wrap}
+  body.ops .tool{padding:10px 14px;min-height:50px}
+  body.ops .tool .t-ico{font-size:21px}
+  .flow4{grid-template-columns:repeat(2,1fr)}
+  .task3,.ges3{grid-template-columns:1fr}
+  .cue-ges{display:none}
+}
+@media print{ body{overflow:visible} }
+
+/* v2.1 final overrides (must come after legacy responsive rules) */
+#spotveil{display:none!important}
+.mission-strip{min-height:44px;height:44px;padding:6px 12px;border-radius:12px}
+.mission-mark{font-size:17px}.mission-copy b{font-size:12px}.mission-copy span{display:none}.mission-link{font-size:10px}
+.hypothesis-strip{height:58px;min-height:58px;padding:6px 10px;gap:8px;border-radius:12px;overflow:hidden}
+.hypo-label{width:104px}.hypo-label b{font-size:11px}.hypo-label span{font-size:10px}.hypo-flow{gap:4px;min-width:0}.hypo-node{padding:5px 7px;font-size:10px;line-height:1.2}.hypo-arrow{font-size:12px}
+.prediction-choice{gap:4px}.prediction-choice button{padding:6px 8px;font-size:10px}
+main{height:calc(100% - 128px)}
+.stage,body.ops .stage{grid-template-rows:44px 92px 58px minmax(170px,auto) minmax(240px,1fr) auto;gap:8px}
+body.ops .bloom{--sh:82px;--bh:38px;padding:13px 4px 5px}
+body.ops .fieldwrap{opacity:1}.fieldwrap{background:linear-gradient(145deg,#fcfbf5,#f3f0e6);border-color:#d8d0be;box-shadow:0 10px 24px rgba(79,61,34,.07)}.fieldstage{min-height:240px}
+.field-lock{background:rgba(255,253,247,.92);border-color:#cbbd9e;color:#75633f}
+.pcard{padding:8px 10px}.pcard-hd{margin-bottom:4px}.pbody{min-height:0}
+.cue{padding:16px 12px 8px;box-shadow:0 7px 18px rgba(51,90,58,.10)}.cue .phase-kicker{left:68px;top:5px}.cue-num{width:38px;height:38px;font-size:17px}.cue-t{font-size:14px}.cue-s{font-size:11.5px}
+@media (max-width:980px){main{height:auto}.stage,body.ops .stage{grid-template-rows:auto auto auto minmax(170px,auto) minmax(220px,1fr) auto}}
+@media (max-width:720px){main,.stage,.mission-strip,.cue,.hypothesis-strip,.parents,.pcard,.fieldwrap,.tools{min-width:0;width:100%;max-width:100%}.mission-strip{height:42px;min-height:42px}.hypothesis-strip{height:auto;min-height:58px}.hypo-flow{max-width:100%;overflow-x:auto}.stage,body.ops .stage{grid-template-rows:42px auto auto minmax(190px,auto) minmax(170px,1fr) auto}.fieldstage{min-height:170px}.cue{padding-top:18px}}
+
+/* v2.2 真实手势与时间过程 */
+#handHint.knifeDemo{animation:knifeSweep 1.65s ease-in-out infinite;transform-origin:center}
+@keyframes knifeSweep{
+  0%{transform:translate(calc(var(--x1) - 34px),var(--y1)) scaleX(-1);opacity:0}
+  16%{opacity:1}
+  68%{transform:translate(calc(var(--x1) + 34px),var(--y1)) scaleX(-1);opacity:1}
+  82%,100%{transform:translate(calc(var(--x1) + 34px),var(--y1)) scaleX(-1);opacity:0}
+}
+.cover.liftable{will-change:transform,opacity;transition:transform .16s ease-out,opacity .16s ease-out}
+.parents{position:relative}
+.time-lapse{display:none;position:absolute;left:14px;right:14px;bottom:10px;z-index:12;align-items:center;gap:11px;padding:10px 12px;border-radius:14px;background:rgba(34,61,43,.94);color:#fff;box-shadow:0 12px 28px rgba(23,45,31,.28);backdrop-filter:blur(8px)}
+body.maturing .time-lapse{display:flex}.time-clock{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.12);font-size:22px;animation:clockSpin 2.4s linear infinite}@keyframes clockSpin{to{transform:rotate(360deg)}}
+.time-copy{flex:1;min-width:0}.time-copy b{display:block;font-size:12px}.time-copy span{display:block;font-size:10.5px;color:rgba(255,255,255,.72);margin:1px 0 5px}.time-copy i{display:block;height:5px;border-radius:9px;background:rgba(255,255,255,.14);overflow:hidden}.time-copy i em{display:block;height:100%;width:0;background:linear-gradient(90deg,#a8d98f,#f2c76f);border-radius:inherit;transition:width .12s linear}.time-lapse>strong{font-family:var(--mono);font-size:12px;white-space:nowrap;color:#f4d48d}
+.harvest-pot{display:none;position:absolute;left:50%;bottom:4px;transform:translateX(-50%);z-index:13;width:126px;height:67px;align-items:center;justify-content:flex-end;flex-direction:column;cursor:pointer;touch-action:none}
+body.harvesting .harvest-pot{display:flex}.pot-arrow{font-size:10px;font-weight:800;color:#7a5b2d;animation:potArrow 1.25s ease-in-out infinite}@keyframes potArrow{50%{transform:translateY(4px)}}
+.pot-bowl{position:relative;width:72px;height:24px;margin-top:3px;border-radius:8px 8px 30px 30px;background:linear-gradient(180deg,#f2d7a0,#c99d58);border:2px solid #a97c3d;box-shadow:inset 0 4px 5px rgba(255,255,255,.45),0 5px 10px rgba(87,57,20,.2)}.pot-bowl::before{content:'';position:absolute;left:-4px;right:-4px;top:-5px;height:10px;border-radius:50%;background:#f8e6c0;border:2px solid #a97c3d}.pot-bowl i{position:absolute;inset:-1px 4px auto;height:5px;border-radius:50%;background:#8c6538;z-index:1;opacity:.35}
+.harvest-pot small{font-size:9.5px;color:#8b7554;margin-top:2px}.harvest-pot.droppable,.harvest-pot.hit{filter:drop-shadow(0 0 8px rgba(46,125,91,.55));transform:translateX(-50%) scale(1.05)}
+body.harvesting .tool[data-tool="seed"]{opacity:.28;pointer-events:none}
+</style>
+</head>
+<body>
+
+<!-- ============ 顶栏 ============ -->
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">🌱</span>
+    <div>
+      <h1>孟德尔测交实验</h1>
+      <p>假说—演绎法 · 交互模拟</p>
+    </div>
+  </div>
+
+  <div class="cond">
+    <span class="cond-label">实验条件</span>
+    <div class="seg" id="condSeg">
+      <button data-cond="normal" class="on"><i class="dot"></i>正常条件</button>
+      <button data-cond="mystery"><i class="dot"></i><span id="cond2Label">异常条件 ❓</span></button>
+    </div>
+  </div>
+
+  <div class="top-actions">
+    <button class="ghost" id="btnHypo">🧭 操作指引</button>
+    <button class="ghost" id="btnZen">🔍 专注</button>
+    <button class="ghost" id="btnReset">↺ 重置本轮</button>
+  </div>
+</header>
+
+<!-- ============ 步骤条 ============ -->
+<nav class="steps" id="steps"></nav>
+
+<!-- ============ 主区 ============ -->
+<main>
+  <section class="stage">
+
+    <div class="mission-strip" aria-label="研究任务">
+      <div class="mission-mark">📓</div>
+      <div class="mission-copy"><b>今天的研究任务：用测交检验孟德尔的分离假说</b><span>先做出预测，再亲手完成一次人工异花传粉，最后用后代证据判断假说是否得到支持。</span></div>
+      <div class="mission-link">实验记录 · 可随时重置</div>
+    </div>
+
+    <div class="cue" id="cue">
+      <div class="phase-kicker" id="phaseKicker">阶段 1 · 提出预测</div>
+      <div class="cue-num" id="cueNum">1<i>／8</i></div>
+      <div class="cue-body">
+        <div class="cue-t" id="cueTitle">去雄</div>
+        <div class="cue-s" id="cueSub">用镊子横向划过花蕾，剪除全部雄蕊</div>
+      </div>
+      <div class="cue-ges" id="cueGes">
+        <span class="gi" id="cueGesIco">✂️</span>
+        <span class="gt" id="cueGesTx">横向滑动</span>
+        <span class="garr"></span>
+      </div>
+    </div>
+
+    <div class="hypothesis-strip" id="predictionPanel">
+      <div class="hypo-label"><b>先写下你的预测</b><span>不要急着看答案</span></div>
+      <div class="hypo-flow">
+        <div class="hypo-node"><strong>F₁ Aa</strong><br/>形成两类配子</div><div class="hypo-arrow">→</div>
+        <div class="hypo-node"><strong>aa</strong><br/>只提供 a 配子</div><div class="hypo-arrow">→</div>
+        <div class="hypo-node"><strong>后代？</strong><br/>高茎 ∶ 矮茎</div>
+      </div>
+      <div class="prediction-choice" role="group" aria-label="预测后代比例">
+        <button data-predict="1:1">1 ∶ 1</button><button data-predict="3:1">3 ∶ 1</button><button data-predict="全高">全是高茎</button>
+      </div>
+    </div>
+
+    <!-- 亲本区 / 操作台 -->
+    <div class="parents">
+      <div class="pcard" data-side="mother" id="cardMother" data-drop="mplant">
+        <div class="pcard-hd">
+          <span class="sex"><span class="s-ico">♀</span>母本 · 矮茎</span>
+          <span class="geno">aa</span>
+        </div>
+        <div class="pbody">
+          <div class="blooms" id="blooms"></div>
+        </div>
+        <div class="pflags">
+          <span class="pflag" id="fEmas">① 去雄 0/3</span>
+          <span class="pflag" id="fBag">② 套袋 0/3</span>
+          <span class="pflag" id="fFert">④ 授粉 0/3</span>
+          <span class="pflag" id="fPod">⑥ 豆荚 0/3</span>
+        </div>
+      </div>
+
+      <div class="pcard" data-side="father" id="cardFather">
+        <div class="pcard-hd">
+          <span class="sex"><span class="s-ico">♂</span>父本 · F₁ 高茎</span>
+          <span class="geno" id="fatherGeno">Aa</span>
+        </div>
+        <div class="pbody">
+          <div class="blooms" id="anthers"></div>
+        </div>
+        <div class="pflags">
+          <span class="pflag" id="fPollen">③ 蘸取花粉</span>
+        </div>
+      </div>
+      <div class="time-lapse" id="timeLapse" aria-live="polite">
+        <div class="time-clock">◷</div>
+        <div class="time-copy"><b id="timeTitle">时间正在流逝</b><span id="timeText">授粉后的子房正在缓慢发育……</span><i><em id="timeBar"></em></i></div>
+        <strong id="timeCount">0.0 s</strong>
+      </div>
+      <div class="harvest-pot" id="harvestPot" data-drop="seedpot" aria-label="空种子盆">
+        <span class="pot-arrow">豆荚拖到这里 ↓</span>
+        <span class="pot-bowl"><i></i></span>
+        <small id="harvestCount">空种子盆 · 0 / 48</small>
+      </div>
+    </div>
+
+    <!-- 田地：4×4 十六宫格 · 2.5D -->
+    <div class="fieldwrap" id="fieldwrap">
+      <div class="field-hd">
+        <h2><span>🧩</span>子代种植区 · 十六宫格 2.5D</h2>
+        <span class="sub" id="fieldSub">每穴播 3 粒种子，共 48 株子代</span>
+        <div class="legend">
+          <span class="lg" style="color:#93A19B;font-weight:500">※ 高茎与矮茎<strong>都是绿色</strong>，区别只有株高本身 —— 请用眼睛比</span>
+        </div>
+      </div>
+      <div class="fieldstage" id="fieldStage">
+        <div class="fieldzoom" id="fieldZoom">
+          <div class="field" id="field"></div>
+        </div>
+        <!-- 分类展示区：点击「分类展示」后，48 株从这里被分左右两堆 -->
+        <div class="sortwrap" id="sortWrap"></div>
+      </div>
+      <div class="field-lock" id="fieldLock"><span class="lk">🔒</span><span>完成人工授粉、收到种子后解锁播种</span></div>
+    </div>
+
+    <!-- 工具架 -->
+    <div class="tools" id="tools">
+      <span class="tools-lb">工具</span>
+      <button class="tool" data-tool="knife"><span class="ord">1</span><span class="t-ico">🔪</span><span class="t-tx">解剖刀</span></button>
+      <button class="tool" data-tool="bag"><span class="ord">2</span><span class="t-ico">🛍</span><span class="t-tx">纸袋</span></button>
+      <button class="tool" data-tool="brush"><span class="ord">3</span><span class="t-ico">🖌</span><span class="t-tx">毛笔</span><span class="fill"><i id="brushFill"></i></span></button>
+      <button class="tool" data-tool="seed" data-drop="seedpot"><span class="ord">4</span><span class="t-ico">🫘</span><span class="t-tx">种子盆</span><span class="badge" id="seedBadge">48</span></button>
+      <span class="tools-spacer"></span>
+      <button class="gbtn soft" id="btnSort" style="display:none">🔍 分类展示</button>
+      <button class="gbtn amber" id="btnGrow" style="display:none">🌱 让它们生长</button>
+      <button class="gbtn soft" id="btnSowAll" style="display:none">⚡ 一键播满</button>
+    </div>
+
+  </section>
+
+  <!-- 右栏 -->
+  <aside class="side">
+    <div class="card">
+      <h3><span class="h-ico">📊</span>性状统计</h3>
+      <div id="statsBody">
+        <div class="empty-note">完成授粉并播种、生长后<br/>这里会实时统计高茎与矮茎的株数</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="h-ico">🧠</span>分析与结论</h3>
+      <div id="conclBody">
+        <div class="empty-note">实验完成后，在这里作出判断</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="h-ico">📐</span>本轮实验记录</h3>
+      <div id="histBody"><div class="empty-note">尚无记录</div></div>
+    </div>
+  </aside>
+</main>
+
+<div id="toasts"></div>
+<div id="spotveil"></div>
+<div id="handHint">👆</div>
+
+<!-- ============ 引导弹窗 ============ -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <h2><span>🧭</span>开始之前，先看清这三件事</h2>
+    <p class="msub">人教版 · 高中生物必修2《遗传与进化》第1章第1节 · 孟德尔豌豆杂交实验（一）</p>
+
+    <div class="gtabs" id="gtabs">
+      <button class="gtab on" data-tab="task">🎯 我要做什么</button>
+      <button class="gtab" data-tab="ges">✋ 怎么操作</button>
+      <button class="gtab" data-tab="hypo">📜 孟德尔假说</button>
+    </div>
+
+    <!-- 任务 -->
+    <div class="gpane on" data-pane="task">
+      <div class="task3">
+        <div class="tk"><span class="tkg">🌸</span><div class="tkn">1</div>
+          <div class="tkt">亲手完成人工异花传粉</div>
+          <div class="tks">去雄 → 套袋 → 取粉 → 授粉 → 再套袋。<br/>用解剖刀切掉花蕾的雄蕊，<b>3 朵花各套一个纸袋</b>。</div></div>
+        <div class="tk"><span class="tkg">🌰</span><div class="tkn">2</div>
+          <div class="tkt">等种子长成，再种进田地</div>
+          <div class="tks">花谢后子房膨大，结出 <b>3 个豆荚</b>；摘下来取出 <b>48 粒</b>种子，<br/>每穴播 3 粒，种进 16 格田地。</div></div>
+        <div class="tk"><span class="tkg">📊</span><div class="tkn">3</div>
+          <div class="tkt">数一数，用结果检验假说</div>
+          <div class="tks">点「分类展示」把高茎和矮茎拔出来分成两堆再数。<br/>演绎推理预测测交后代高茎∶矮茎 = <b>1∶1</b>，不符你打算怎么办？</div></div>
+      </div>
+      <div class="keybox">
+        <b>💡 这一课的核心不是"背结论"，而是走完假说—演绎法的第四步。</b><br/>
+        让 F₁ 高茎（Aa）与隐性纯合子矮茎（aa）测交 —— 如果孟德尔的假说成立，后代应当恰好一半高、一半矮。
+      </div>
+    </div>
+
+    <!-- 手势 -->
+    <div class="gpane" data-pane="ges">
+      <div class="ges3">
+        <div class="gs"><div class="gsi">🔪</div><div class="gst">横向滑动（切）</div>
+          <div class="gss">解剖刀<b>划过</b>花蕾 = 切掉雄蕊<br/>毛笔<b>划过</b>花朵 = 涂抹授粉</div></div>
+        <div class="gs"><div class="gsi">🖐️</div><div class="gst">拖拽</div>
+          <div class="gss">纸袋<b>拖到某一朵花</b>上 = 套住这一朵<br/>豆荚<b>拖到</b>种子盆 = 取出种子</div></div>
+        <div class="gs"><div class="gsi">⬆️</div><div class="gst">向上滑动</div>
+          <div class="gss">按住纸袋<b>往上提</b> = 揭下这个袋子</div></div>
+      </div>
+      <div class="keybox">
+        <b>看不明白的时候，看屏幕上的手指动画 👆</b><br/>
+        它会一直演示"现在该做什么动作"。顶部绿色指令卡也会写清楚这一步的要求。
+      </div>
+    </div>
+
+    <!-- 假说 -->
+    <div class="gpane" data-pane="hypo">
+      <div class="hypo"><span class="hn">1</span><span class="ht">生物的性状是由<em>遗传因子</em>决定的。遗传因子既不会相互融合，也不会在传递中消失。</span></div>
+      <div class="hypo"><span class="hn">2</span><span class="ht">在<em>体细胞</em>中，遗传因子是<em>成对</em>存在的。</span></div>
+      <div class="hypo"><span class="hn">3</span><span class="ht">生物体形成配子时，成对的遗传因子<em>彼此分离</em>，分别进入不同的配子中。配子中只含有每对遗传因子中的<em>一个</em>。</span></div>
+      <div class="hypo"><span class="hn">4</span><span class="ht">受精时，雌雄配子的结合是<em>随机</em>的。</span></div>
+
+      <div class="flow4">
+        <div class="f4"><div class="f4n">第一步</div><div class="f4t">观察现象<br/>提出问题</div></div>
+        <div class="f4"><div class="f4n">第二步</div><div class="f4t">提出假说<br/>解释问题</div></div>
+        <div class="f4"><div class="f4n">第三步</div><div class="f4t">演绎推理<br/>作出预测</div></div>
+        <div class="f4"><div class="f4n">第四步</div><div class="f4t">实验验证<br/>得出结论</div></div>
+      </div>
+
+      <div class="modal-note">
+        <b>💡 本模拟的核心看点是"第四步"。</b><br/>
+        演绎推理告诉我们：如果假说正确，让 F₁（Aa）与隐性纯合子（aa）测交，后代高茎∶矮茎应当<strong>恰好等于 1∶1</strong>。<br/>
+        请亲手完成实验，看看实际结果是否与预期相符 —— 若不相符，你打算怎么办？
+      </div>
+    </div>
+
+    <button class="gbtn modal-close" id="modalClose">开始第 1 步 · 去雄</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ==========================================================================
+   孟德尔测交实验 · 交互模拟
+   单文件、离线可用、触屏优先
+   ========================================================================== */
+
+/* ---------------------- 常量 ---------------------- */
+/* gesture: sweepX 横向切割 | drag 拖拽 | lift 向上滑动 | tap 点击 */
+const STEP_DEFS = [
+  { k:'emas',  n:'去雄',     gesture:'sweepX', gle:'🔪', gtx:'横向切割',
+    title:'去雄', sub:'用解剖刀横向划过每一朵花蕾，切掉它的全部雄蕊（豌豆闭花受粉，必须在花蕾期操作）' },
+  { k:'bag',   n:'套袋',     gesture:'drag',   gle:'🛍', gtx:'逐朵拖拽',
+    title:'套袋', sub:'把纸袋依次拖到花朵上 —— 3 朵花要分别套 3 次，隔离外来花粉' },
+  { k:'pollen',n:'取粉',     gesture:'drag',   gle:'🖌', gtx:'拖拽',
+    title:'蘸取花粉', sub:'把毛笔拖到父本成熟的花药上，蘸取花粉' },
+  { k:'fert',  n:'授粉',     gesture:'lift',   gle:'⬆️', gtx:'上滑 / 横划',
+    title:'授粉', sub:'先把 3 个纸袋逐一向上滑开，再用带粉毛笔划过 3 朵花——一朵也不能漏' },
+  { k:'rebag', n:'再套袋',   gesture:'drag',   gle:'🛍', gtx:'逐朵拖拽',
+    title:'再套袋', sub:'授粉后重新给 3 朵花套上纸袋，防止外来花粉造成二次污染' },
+  { k:'pod',   n:'收种子',   gesture:'drag',   gle:'🌰', gtx:'拖拽采摘',
+    title:'收获种子', sub:'子房一天天膨大，长成了豆荚 —— 把 3 个豆荚依次拖进种子盆，取出种子' },
+  { k:'sow',   n:'播种',     gesture:'drag',   gle:'🫘', gtx:'拖拽',
+    title:'播种', sub:'把种子拖进十六宫格田地，每穴 3 粒（共 48 株子代）' },
+  { k:'grow',  n:'生长观察', gesture:'tap',    gle:'🌱', gtx:'点击',
+    title:'生长观察', sub:'点击「让它们生长」，观察每株子代的茎高' },
+  { k:'sort',  n:'分类统计', gesture:'tap',    gle:'📊', gtx:'点击',
+    title:'分析结论', sub:'点「分类展示」，把高茎和矮茎从田里拔出来分成两堆数一数，再与演绎推理的预期比较' }
+];
+const STEP_N = STEP_DEFS.length;                     // 总步数（9）
+const TOTAL_CELLS = 16;
+const SEEDS_PER_CELL = 3;
+const TOTAL_PLANTS = TOTAL_CELLS * SEEDS_PER_CELL;   // 48
+const FLOWER_N = 3;
+const POD_N = 3;                                     // 母本 3 朵花 → 3 个豆荚
+const SEEDS_PER_POD = TOTAL_PLANTS / POD_N;          // 每个豆荚 16 粒
+/* 每格 3 株的落点：沿格子局部对角线铺开，投影到屏幕上正好是一排（避免立牌互相遮挡） */
+/* 每穴 3 株的落点（格子内百分比坐标）。
+   ① 沿 "grid 对角线 (1,-1)" 方向排布 → 投影后正好是一条水平线、屏幕间距均匀（≈32px）；
+   ② 再加一点 (1,1) 方向的递进，让三株一前一后错落，像真实的一窝苗（DOM 顺序即由远及近）；
+   ③ 整体沿 (-1,-1) 方向再推 10px 局部单位 ≈ 屏幕上抬 8px：这样植株的"基部"
+      刚好落在前排地块上沿之上。否则基部会被前排地块盖掉几像素，茎看起来是断的
+      （立牌平面与前排地块面互相穿插，浏览器按整块多边形排序，做不到逐像素正确）。 */
+const PLANT_POS = [[17,65],[41,49],[65,33]];
+
+const TOOL_LABEL = { knife:'解剖刀', bag:'纸袋', brush:'毛笔', seed:'种子盆', pod:'豆荚' };
+const TOOL_EMOJI = { knife:'🔪', bag:'🛍', brush:'🖌', seed:'🫘', pod:'🌰' };
+
+/* ---------------------- 状态 ---------------------- */
+let S = null;
+function freshState(cond){
+  return {
+    cond: cond || 'normal',
+    revealed: false,
+    step: 1,                       // 1..STEP_N（9）
+    /* 每朵花独立的状态位：去雄 / 套袋 / 授粉。套袋与揭袋都按「朵」进行 ——
+       3 朵花就得套 3 次、揭 3 次，而不是"一键套整株"。 */
+    flowers: Array.from({length:FLOWER_N}, () => ({ emas:false, bag:false, fert:false })),
+    bagged: false,                 // 派生：3 朵是否都已套袋（每次改 flowers[].bag 后同步）
+    podTaken: [false,false,false], // 3 个豆荚是否已摘走取种
+    pollen: 0,                     // 0 | 100
+    cells: Array.from({length:TOTAL_CELLS}, () => ({ stage:0, geno:[null,null,null] })), // stage 0空 1种 2苗 3成熟
+    seedPool: [],                  // 本轮 48 粒的基因型（打乱）
+    seedIdx: 0,                    // 已播穴数（每穴 3 粒）
+    grown: false,
+    maturing: false,
+    matureProgress: 0,
+    sortOpen: false,               // 「分类展示」是否已把幼苗拔出、左右分堆
+    roundRecorded: false,          // 本轮数据是否已记入历史
+    rounds: S ? S.rounds : [],     // 跨轮保留
+    answered: {},                  // 记录作答
+    prediction: null,              // 学生先写下的测交预测
+    predictionAttempts: 0,
+    sampleChoice: null,
+    selectedTool: null,
+    guided: false                  // 是否已看过首屏引导
+  };
+}
+
+/* 把「每朵花的套袋位」汇总成 S.bagged 这个派生量。
+   套袋 / 揭袋 / 再套袋都按朵操作，代码里"整株是否已隔离"的判断统一读 S.bagged：
+   全罩上 → true（第 2、5 步完成）；全揭下 → false（第 4 步可以开始授粉）。 */
+function syncBagged(){
+  S.bagged = S.flowers.every(function(f){ return f.bag; });
+  return S.bagged;
+}
+/* 当前仍罩着袋子的花数：套袋进度与揭袋进度共用 */
+function bagCount(){ return S.flowers.filter(function(f){ return f.bag; }).length; }
+
+/* ---------------------- DOM ---------------------- */
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+const elSteps = $('#steps'), elField = $('#field'), elBlooms = $('#blooms'),
+      elAnthers = $('#anthers'), elToasts = $('#toasts'),
+      elSortWrap = $('#sortWrap'), elBtnSort = $('#btnSort'),
+      elStats = $('#statsBody'), elConcl = $('#conclBody'), elHist = $('#histBody'),
+      elTools = $('#tools'), elFieldSub = $('#fieldSub'), elSeedBadge = $('#seedBadge'),
+      elBrushFill = $('#brushFill'), elBtnGrow = $('#btnGrow'), elBtnSowAll = $('#btnSowAll'),
+      elFatherGeno = $('#fatherGeno'), elCond2Label = $('#cond2Label'),
+      elCue = $('#cue'), elCueNum = $('#cueNum'), elCueTitle = $('#cueTitle'),
+      elCueSub = $('#cueSub'), elCueGes = $('#cueGes'), elCueGesIco = $('#cueGesIco'),
+      elCueGesTx = $('#cueGesTx'), elFieldStage = $('#fieldStage'), elFieldZoom = $('#fieldZoom'),
+      elVeil = $('#spotveil'), elHand = $('#handHint'), elFieldWrap = $('#fieldwrap'),
+      elPredictionPanel = $('#predictionPanel'), elPhaseKicker = $('#phaseKicker'),
+      elTimeLapse = $('#timeLapse'), elTimeBar = $('#timeBar'), elTimeText = $('#timeText'),
+      elTimeCount = $('#timeCount'), elHarvestPot = $('#harvestPot'), elHarvestCount = $('#harvestCount');
+
+/* ==========================================================================
+   植物 / 花朵 SVG
+   ========================================================================== */
+/* ⚠️ 配色原则：高茎与矮茎**一律使用同一种绿**。
+   真实豌豆无论高矮都是绿色植株，教材插图的区分依据只有"株高"这一个形态特征。
+   若用颜色区分（曾用绿 / 橙），既不符合事实，也会让"观察茎高"这个核心观察任务
+   退化成"看颜色识图"，学生不再需要比较高度。所以下面所有配色常量都与 pheno 无关，
+   pheno 只影响**形态**：株高、茎粗、叶形、叶位。 */
+const PLANT_C = {
+  stem:  '#3E9C5F',   // 主茎
+  leaf:  '#5FBE85',   // 叶片
+  pod:   '#7FC494',   // 成熟豆荚（比叶片更浓的绿，两者要分得开）
+  podD:  '#5FA878',
+  young: '#6FBF8A'    // 幼苗嫩绿
+};
+
+function svgPlant(pheno, stage){
+  const tall = pheno === 'tall';
+  const c = PLANT_C;
+  const sw = tall ? 4.2 : 5.6;               // 矮茎茎更粗，体现"矮壮"——这是形态差异，保留
+
+  if (stage === 'seed'){
+    return '<svg viewBox="0 0 64 100" preserveAspectRatio="xMidYMax meet">'
+      + '<ellipse cx="32" cy="92" rx="8" ry="5.5" fill="#6B5334"/>'
+      + '<ellipse cx="30" cy="91" rx="3" ry="2" fill="#8A6B4F" opacity=".8"/></svg>';
+  }
+  if (stage === 'sprout'){
+    // 幼苗期高茎 / 矮茎在形态上本就无从分辨（教材亦如此），统一用中性嫩绿
+    return '<svg viewBox="0 0 64 100" preserveAspectRatio="xMidYMax meet">'
+      + '<path d="M32 96 V76" stroke="' + c.young + '" stroke-width="3.5" stroke-linecap="round"/>'
+      + '<ellipse cx="21" cy="74" rx="10.5" ry="5" fill="' + c.leaf + '" transform="rotate(-24 21 74)"/>'
+      + '<ellipse cx="43" cy="74" rx="10.5" ry="5" fill="' + c.leaf + '" transform="rotate(24 43 74)"/></svg>';
+  }
+  // 成熟：高茎 88 / 矮茎 40（约 2.2 倍），保证投影到教室后排也能一眼分辨
+  const H = tall ? 88 : 40;
+  const topY = 96 - H;
+  const l1 = topY + H * 0.40, l2 = topY + H * 0.68, pd = topY + H * 0.84;
+  const podX = tall ? 43 : 21, podRot = tall ? 22 : -22;
+  const rx = tall ? 11.5 : 14.5;                 // 矮茎叶片更宽 → 矮壮
+  const ry = tall ? 5.4 : 6.6;
+  return '<svg viewBox="0 0 64 100" preserveAspectRatio="xMidYMax meet">'
+    + '<ellipse cx="32" cy="95" rx="17" ry="4" fill="rgba(60,40,20,.16)"/>'
+    + '<path d="M32 96 V' + (topY + 7) + '" stroke="' + c.stem + '" stroke-width="' + sw + '" stroke-linecap="round"/>'
+    + '<ellipse cx="' + (tall ? 21 : 19) + '" cy="' + l1 + '" rx="' + rx + '" ry="' + ry + '" fill="' + c.leaf + '" transform="rotate(-26 ' + (tall ? 21 : 19) + ' ' + l1 + ')"/>'
+    + '<ellipse cx="' + (tall ? 43 : 45) + '" cy="' + l2 + '" rx="' + rx + '" ry="' + ry + '" fill="' + c.leaf + '" transform="rotate(26 ' + (tall ? 43 : 45) + ' ' + l2 + ')"/>'
+    + '<ellipse cx="' + podX + '" cy="' + pd + '" rx="4.8" ry="8.4" fill="' + c.pod + '" transform="rotate(' + podRot + ' ' + podX + ' ' + pd + ')"/>'
+    + '<circle cx="32" cy="' + (topY + 3) + '" r="7.2" fill="#FFFFFF" stroke="#DDE8E2" stroke-width="1.2"/>'
+    + '<circle cx="32" cy="' + (topY + 3) + '" r="2.6" fill="#F2C94C"/></svg>';
+}
+
+/* 幼苗被"拔出来"时的形态：更简单、更瘦长，且带主根 —— 用于分类展示区 */
+function svgSprig(pheno){
+  const tall = pheno === 'tall';
+  const c = PLANT_C;
+  /* 两堆植株画在同一个 viewBox、按同一底边对齐 —— 这等于给分类区放了一把公共的尺子：
+     矮茎不是"缩小画"，而是同尺度下真的矮一截，学生一眼就能比出来。 */
+  const H = tall ? 58 : 33;
+  const topY = 78 - H;
+  const lx = tall ? 7.4 : 6.2, ly = tall ? 3.6 : 3.1;   // 矮茎叶略小，避免显得"胖"
+  const off = tall ? 9 : 7.6;
+  return '<svg viewBox="0 0 40 84" preserveAspectRatio="xMidYMax meet">'
+    // 主根
+    + '<path d="M20 78 V70" stroke="#C9A87A" stroke-width="2.4" stroke-linecap="round"/>'
+    + '<path d="M20 74 L15 79 M20 74 L25 79" stroke="#C9A87A" stroke-width="1.6" stroke-linecap="round"/>'
+    // 主茎
+    + '<path d="M20 ' + (topY + 5) + ' V77" stroke="' + c.stem + '" stroke-width="' + (tall ? 2.6 : 3.4) + '" stroke-linecap="round"/>'
+    // 一对子叶
+    + '<ellipse cx="' + (20 - off) + '" cy="' + (topY + 16) + '" rx="' + lx + '" ry="' + ly + '" fill="' + c.leaf + '" transform="rotate(-24 ' + (20 - off) + ' ' + (topY + 16) + ')"/>'
+    + '<ellipse cx="' + (20 + off) + '" cy="' + (topY + 16) + '" rx="' + lx + '" ry="' + ly + '" fill="' + c.leaf + '" transform="rotate(24 ' + (20 + off) + ' ' + (topY + 16) + ')"/>'
+    // 顶芽
+    + '<circle cx="20" cy="' + (topY + 3) + '" r="3.4" fill="#C7E9D5" stroke="' + c.stem + '" stroke-width="1.2"/></svg>';
+}
+
+function svgBloom(state, showPollen){
+  // state: 'intact'（带雄蕊）| 'emas'（已去雄，雄蕊已剪除）
+  let s = '<svg viewBox="0 0 40 32">';
+  s += '<g>'
+    + '<ellipse cx="20" cy="8" rx="7" ry="6" fill="#FFFFFF" stroke="#E2EBE6" stroke-width="1.1"/>'
+    + '<ellipse cx="11" cy="15" rx="7" ry="6" fill="#FFFFFF" stroke="#E2EBE6" stroke-width="1.1"/>'
+    + '<ellipse cx="29" cy="15" rx="7" ry="6" fill="#FFFFFF" stroke="#E2EBE6" stroke-width="1.1"/>'
+    + '<ellipse cx="20" cy="22" rx="7" ry="6" fill="#FFFFFF" stroke="#E2EBE6" stroke-width="1.1"/>'
+    + '</g>';
+  if (state === 'intact'){
+    s += '<g class="anthers">'
+      + '<g stroke="#F2C94C" stroke-width="1.7" stroke-linecap="round">'
+      + '<line x1="20" y1="19" x2="20" y2="10.5"/>'
+      + '<line x1="27.6" y1="21.4" x2="32.2" y2="14.8"/>'
+      + '<line x1="12.4" y1="21.4" x2="7.8" y2="14.8"/></g>'
+      + '<circle cx="20" cy="9.6" r="2.1" fill="#F2C94C"/>'
+      + '<circle cx="33.2" cy="14" r="2.1" fill="#F2C94C"/>'
+      + '<circle cx="6.8" cy="14" r="2.1" fill="#F2C94C"/>'
+      + '</g>';
+  } else {
+    /* 已去雄：雄蕊被切掉，但**雌蕊还在**——这才是去雄的真实结果，
+       也是接下来授粉的作用部位（花粉落在柱头上）。
+       只画一个空洞的虚线圈会让人以为整朵花被掏空了，也不利于理解"为什么还要授粉"。 */
+    s += '<g class="pistil">'
+      + '<circle cx="20" cy="15" r="5.6" fill="none" stroke="#CFE4D8" stroke-width="1.1" stroke-dasharray="3 2.4"/>'
+      + '<line x1="20" y1="19" x2="20" y2="11.4" stroke="#8FCBA8" stroke-width="2.1" stroke-linecap="round"/>'
+      + '<circle cx="20" cy="10.6" r="2.7" fill="#B4E3C8" stroke="#7FC49A" stroke-width="1"/>'
+      + '</g>';
+  }
+  if (showPollen){
+    s += '<g class="pollenmark">'
+      + '<circle cx="27" cy="10.5" r="3" fill="#F0A020"/>'
+      + '<circle cx="14" cy="12" r="2.4" fill="#F0A020" opacity=".85"/>'
+      + '<circle cx="20" cy="7" r="2.1" fill="#F7C948"/>'
+      + '</g>';
+  }
+  return s + '</svg>';
+}
+
+/* 花茎（含两片叶）。与 .bhead 的定位约定：
+   viewBox 高 74，花茎顶端画在 y=16 —— 而 .bhead 高 --bh、按 viewBox 40×32 等比缩放，
+   其圆心恰好在自身高度的 50% 处；CSS 里 .bhead 的 top=1px 就是让这两个点在屏幕上重合。
+   所以花头看起来是"长在茎顶"而不是"浮在卡片上"。 */
+function svgStem(){
+  const c = PLANT_C;
+  return '<svg viewBox="0 0 52 74">'
+    + '<path d="M26 72 C24.6 54, 27.4 36, 26 16" stroke="' + c.stem + '" stroke-width="3.2" stroke-linecap="round" fill="none"/>'
+    + '<path d="M14 46 C18 45, 22 44.4, 25.4 43.2" stroke="' + c.stem + '" stroke-width="1.3" opacity=".5" fill="none"/>'
+    + '<path d="M38 34 C34 33.2, 30 32.4, 26.6 31.4" stroke="' + c.stem + '" stroke-width="1.3" opacity=".5" fill="none"/>'
+    + '<ellipse cx="14" cy="46" rx="12" ry="5.2" fill="' + c.leaf + '" transform="rotate(-30 14 46)"/>'
+    + '<ellipse cx="38" cy="34" rx="12" ry="5.2" fill="' + c.leaf + '" transform="rotate(30 38 34)"/>'
+    + '</svg>';
+}
+
+/* 豆荚：花谢之后由子房发育而来，挂在同一根花梗的顶端 ——
+   所以它出现在花头原来的位置（.bhead），只是换了个形态。
+   这一步是教材里"人工异花传粉 → 结出种子 → 下一代"的必要环节，
+   跳过它直接播种，学生会丢失"这些种子是这个豆荚结出来的"这条因果链。 */
+function svgPod(){
+  const c = PLANT_C;
+  /* 细长 + 微微弯曲：真实豌豆荚是弯月形的，直挺挺的对称柳叶会被看成一片叶子。
+     内壁排一列浅色鼓包 —— 一眼读出"里面装着一粒粒种子"。
+     画在挂点上，正好接住原来那朵花的花梗位置。 */
+  return '<svg viewBox="0 0 30 76">'
+    + '<path d="M16 7 V0" stroke="' + c.stem + '" stroke-width="2.2" stroke-linecap="round"/>'
+    + '<path d="M16 6 C5 20, 3 48, 13 70 C22 60, 24 28, 16 6 Z" fill="' + c.pod
+      + '" stroke="' + c.podD + '" stroke-width="1.5" stroke-linejoin="round"/>'
+    + '<path d="M15 10 C7 24, 6 46, 13.4 65" stroke="' + c.podD + '" stroke-width="1" opacity=".55" fill="none"/>'
+    + '<ellipse cx="11" cy="20" rx="3.2" ry="4.4" fill="#FFFFFF" opacity=".44"/>'
+    + '<ellipse cx="10" cy="33" rx="3.4" ry="4.6" fill="#FFFFFF" opacity=".40"/>'
+    + '<ellipse cx="10" cy="46" rx="3.2" ry="4.4" fill="#FFFFFF" opacity=".36"/>'
+    + '<ellipse cx="11.5" cy="58" rx="2.8" ry="3.8" fill="#FFFFFF" opacity=".30"/>'
+    + '</svg>';
+}
+
+/* ==========================================================================
+   渲染
+   ========================================================================== */
+function renderSteps(){
+  elSteps.innerHTML = STEP_DEFS.map(function(s, i){
+    const n = i + 1;
+    const cls = n < S.step ? 'done' : (n === S.step ? 'cur' : '');
+    const line = i < STEP_DEFS.length - 1 ? '<span class="line"></span>' : '';
+    return '<div class="stp ' + cls + '" data-step="' + n + '">'
+      + '<div class="num"><span>' + n + '</span></div>'
+      + '<div class="tx">' + s.n + '</div>'
+      + line + '</div>';
+  }).join('');
+}
+
+function phaseForStep(step){
+  if (step <= 0) return {n:'1', title:'提出预测'};
+  if (step <= 5) return {n:'2', title:'完成测交'};
+  if (step <= 8) return {n:'3', title:'培育子代'};
+  return {n:'4', title:'分析证据'};
+}
+
+function renderPrediction(){
+  if (!elPredictionPanel) return;
+  const buttons = elPredictionPanel.querySelectorAll('[data-predict]');
+  buttons.forEach(function(b){
+    b.classList.toggle('selected', S.prediction === b.dataset.predict);
+    b.classList.toggle('wrong', S.prediction && S.prediction !== '1:1' && S.prediction === b.dataset.predict);
+  });
+  if (S.prediction === '1:1'){
+    elPredictionPanel.classList.add('confirmed');
+    const note = elPredictionPanel.querySelector('.hypo-label span');
+    if (note) note.textContent = '预测已记录 ✓';
+  } else {
+    elPredictionPanel.classList.remove('confirmed');
+    const note = elPredictionPanel.querySelector('.hypo-label span');
+    if (note) note.textContent = S.prediction ? '再想一想' : '不要急着看答案';
+  }
+}
+
+function renderMaturation(){
+  if (elTimeBar) elTimeBar.style.width = Math.max(0, Math.min(100, S.matureProgress || 0)) + '%';
+  if (elTimeCount) elTimeCount.textContent = ((S.matureProgress || 0) * 0.052).toFixed(1) + ' s';
+  if (elTimeText){
+    const p = S.matureProgress || 0;
+    elTimeText.textContent = p < 30 ? '花冠逐渐凋谢，受精后的子房开始膨大……'
+      : (p < 68 ? '时间飞逝：豆荚正在伸长，种子逐渐充实……' : '豆荚由嫩变饱满，种子即将成熟……');
+  }
+  if (elHarvestCount) elHarvestCount.textContent = podCount() ? ('已收 ' + (podCount() * SEEDS_PER_POD) + ' / ' + TOTAL_PLANTS + ' 粒') : '空种子盆 · 0 / 48';
+}
+
+/* ---- 操作指令卡 ---- */
+function renderCue(){
+  const d = STEP_DEFS[S.step - 1];
+  const phase = phaseForStep(S.step);
+  let title = d.title, sub = d.sub, ges = d.gesture, mode = '';
+
+  const emasLeft = S.flowers.filter(function(f){ return !f.emas; }).length;
+  const fertLeft = S.flowers.filter(function(f){ return !f.fert; }).length;
+  const bagLeft  = FLOWER_N - bagCount();
+  const podLeft  = POD_N - podCount();
+
+  if (S.step === 1 && emasLeft > 0 && emasLeft < FLOWER_N){
+    sub = '已切掉 ' + (FLOWER_N - emasLeft) + ' 朵的雄蕊，还剩 ' + emasLeft + ' 朵 —— 继续用解剖刀横向划过去';
+  }
+  if (S.step === 2 && bagLeft > 0 && bagLeft < FLOWER_N){
+    sub = '已套好 ' + bagCount() + ' 朵，还剩 ' + bagLeft + ' 朵 —— 把纸袋再拖到下一朵花上（一朵一个袋子）';
+    mode = 'warn';
+  }
+  if (S.step === 3 && S.pollen > 0){ sub = '✓ 花粉已蘸满 —— 下一步先把 3 个纸袋逐一揭下，再授粉'; mode = 'done'; }
+  if (S.step === 3 && S.pollen <= 0){ ges = 'sweepX'; sub = '用毛笔从左向右横向划过父本花药，把花粉刷到笔尖上'; }
+  if (S.step === 4 && bagCount() > 0){
+    ges = 'lift';
+    sub = '还有 ' + bagCount() + ' 个纸袋罩着花 —— 按住纸袋向上滑动把袋子提起来（每个袋子都要揭）';
+    mode = 'warn';
+  } else if (S.step === 4){
+    ges = 'sweepX';
+    sub = fertLeft === FLOWER_N
+      ? '用带粉毛笔横向划过（或直接拖到）3 朵母本花，完成授粉'
+      : '已授粉 ' + (FLOWER_N - fertLeft) + ' 朵，还剩 ' + fertLeft + ' 朵';
+  }
+  if (S.step === 5 && bagLeft > 0 && bagLeft < FLOWER_N){
+    sub = '已重新套袋 ' + bagCount() + ' 朵，还剩 ' + bagLeft + ' 朵 —— 每一朵都要重新罩上';
+    mode = 'warn';
+  }
+  if (S.step === 5 && bagLeft === 0){ sub = '✓ 3 朵花全部重新套袋 —— 人工授粉完成，接下来等待结种子'; mode = 'done'; }
+  if (S.step === 6){
+    sub = S.maturing ? '人工授粉已经完成。请观察时间流逝：花谢、子房膨大、种子逐渐成熟……' : (podLeft === POD_N
+      ? '种子已经成熟 —— 把上方的豆荚向下拖进空种子盆，逐荚收集种子'
+      : '已采收 ' + podCount() + ' 个豆荚，还剩 ' + podLeft + ' 个');
+    if (!S.maturing) sub += podLeft === POD_N ? '' : '；继续从豆荚拖向下方种子盆';
+    if (S.maturing) mode = 'done';
+  }
+  if (S.step === 7){
+    const leftCell = TOTAL_CELLS - S.seedIdx;
+    if (S.seedIdx > 0 && leftCell > 0){
+      sub = '已播 ' + S.seedIdx + ' / ' + TOTAL_CELLS + ' 穴，还剩 ' + leftCell + ' 穴 —— 继续拖种子到空穴，或点「一键播满」';
+    }
+  }
+  if (S.step === 8){ ges = 'tap'; sub = '点击下方「🌱 让它们生长」，观察每株子代的茎高'; }
+  if (S.step === 9){ ges = 'tap'; sub = '点「🔍 分类展示」把高茎、矮茎拔出来分成两堆数一数，再到右侧作出判断'; }
+
+  elCueNum.innerHTML = S.step + '<i>／' + STEP_N + '</i>';
+  if (elPhaseKicker) elPhaseKicker.textContent = '阶段 ' + phase.n + ' · ' + phase.title;
+  elCueTitle.textContent = title;
+  elCueSub.textContent = sub;
+  elCueGesIco.textContent = d.gle;
+  elCueGesTx.textContent = d.gtx;
+  elCueGes.className = 'cue-ges' + (ges === 'lift' ? ' vert' : (ges === 'tap' ? ' tap' : ''));
+  elCue.className = 'cue' + (mode ? ' ' + mode : '');
+}
+
+/* ---- 亲本 / 操作台 ---- */
+let justCut = -1, justSmeared = -1;      // 刚完成动作的花朵索引：只让发生变化的那一朵播放动画
+let justBagged = -1;
+let maturityTimer = null;
+
+const podCount = () => S.podTaken.filter(Boolean).length;
+
+/* 一根花枝 = 土壤基座 + 花茎 + 顶端的【花】或【豆荚】。
+   · 第 1–5 步：顶端是花；已套袋的那一朵会有一个真正罩在花上的纸袋
+   · 第 6 步起：花谢结荚，顶端换成豆荚（同一位置、同一根花梗）
+   每朵花的状态位完全独立，所以"3 朵花套 3 次袋"是天然结果，不需要特判。 */
+function sprigHTML(head, extraCls, drop, idx, tx){
+  return '<div class="bloom' + (extraCls ? ' ' + extraCls : '') + '" data-drop="' + drop + '" data-idx="' + idx + '">'
+    + '<span class="stroke"><i></i></span>'
+    + '<div class="sprig"><span class="soilbase"></span>'
+      + '<span class="stem">' + svgStem() + '</span>'
+      + head
+    + '</div>'
+    + '<span class="b-tx">' + tx + '</span></div>';
+}
+
+function renderParents(){
+  const podMode = S.step >= 6 && !S.maturing;  // 时间快进结束后：花 → 成熟豆荚
+
+  // 母本 3 根花枝
+  elBlooms.innerHTML = S.flowers.map(function(f, i){
+    const canEmas  = S.step === 1 && !f.emas;
+    const canBag   = (S.step === 2 || S.step === 5) && !f.bag;
+    const canUnbag = S.step === 4 && f.bag;
+    const canFert  = S.step === 4 && !f.bag && S.pollen > 0 && f.emas && !f.fert;
+    const canPick  = podMode && S.step === 6 && !S.podTaken[i];
+
+    const animateCut = justCut === i;
+    const showAnthers = !f.emas || animateCut;
+
+    const cls = [];
+    if (animateCut) cls.push('cut');
+    if (f.fert) cls.push('done', 'pollenOn');
+    else if (f.emas) cls.push('done');
+    if (justSmeared === i && f.fert) cls.push('smeared');
+    if (canEmas || canBag || canUnbag || canFert) cls.push('cando');
+
+    let head, tx;
+    if (podMode){
+      head = '<div class="bhead podmode' + (canPick ? ' cando' : '') + (S.podTaken[i] ? ' taken' : '') + '">'
+        + svgPod() + '</div>';
+      tx = S.podTaken[i] ? '已取种 ✓' : '豆荚 ' + (i + 1);
+    } else {
+      head = '<div class="bhead">' + svgBloom(showAnthers ? 'intact' : 'emas', f.fert)
+        + (f.bag ? '<span class="cover' + (canUnbag ? ' liftable' : '') + '"></span>' : '')
+        + '</div>';
+      tx = f.fert ? '已授粉 ✓' : (f.emas ? '已去雄 ✓' : '花蕾 ' + (i + 1));
+    }
+    return sprigHTML(head, cls.join(' '), podMode ? 'pod' : 'mflower', i, tx);
+  }).join('');
+
+  // 父本只保留 1 根花枝（成熟花药已足够完成取粉）
+  const got = S.pollen > 0;
+  elAnthers.innerHTML = [0].map(function(i){
+    const cls = (got ? 'done pollenOn' : '') + (S.step === 3 && !got ? ' cando' : '');
+    const head = '<div class="bhead">' + svgBloom(got ? 'emas' : 'intact', got) + '</div>';
+    return sprigHTML(head, cls, 'fflower', i, got ? '花粉已采集 ✓' : '成熟花药 ' + (i + 1));
+  }).join('');
+
+  // 状态徽标（逐项计数，让"套了 3 次袋"这件事在界面上可数）
+  const nEmas = S.flowers.filter(function(f){ return f.emas; }).length;
+  const nFert = S.flowers.filter(function(f){ return f.fert; }).length;
+  const nBag  = bagCount();
+  const nPod  = podCount();
+
+  const setFlag = function(id, n, total, label){
+    const el = $(id);
+    el.className = 'pflag' + (n >= total ? ' on' : '');
+    el.textContent = label + ' ' + n + '/' + total;
+  };
+  setFlag('#fEmas', nEmas, FLOWER_N, '① 去雄');
+  setFlag('#fBag',  nBag,  FLOWER_N, '② 套袋');
+  setFlag('#fFert', nFert, FLOWER_N, '④ 授粉');
+  setFlag('#fPod',  nPod,  POD_N,    '⑥ 豆荚');
+  $('#fPod').style.display = podMode ? '' : 'none';
+  $('#fPollen').className = 'pflag' + (S.pollen > 0 ? ' on' : '');
+
+  elFatherGeno.textContent = 'Aa';
+  syncBagged();
+}
+
+/* ---- 田地：4×4 十六宫格 · 2.5D ---- */
+/* 缩放按"投影后的真实视觉外框"算，不是按布局盒：
+   3D 变换不参与布局，.fieldzoom 的 offsetWidth 只是"格子边长 + padding"，
+   而眼睛看到的是那个菱形（宽 = 边长×√2，高 = 边长×√2×cos56°），
+   再加上最上一格植株探出菱形上顶点的部分（≈30px，与格子边长无关）。
+   padding 只负责居中偏移，不裁剪，所以这里的余量给得很小（34/24）。
+   --tile / padding 改动都不用再改这里（格子边长从 DOM 实测）。 */
+const ISO_COS = Math.cos(56 * Math.PI / 180);
+function fitField(){
+  if (!elFieldStage) return;
+  const cw = elFieldStage.clientWidth, ch = elFieldStage.clientHeight;
+  if (cw < 60 || ch < 60) return;
+  const gw = (elField && elField.offsetWidth) || 478;              // 4 格 + 3 缝 = 478
+  const dia = gw * Math.SQRT2;                                     // 菱形对角线
+  const W = dia + 24;                                              // 视觉宽
+  const H = dia * ISO_COS + 34;                                    // 视觉高（含顶端植株抬头）
+  const fs = Math.max(0.22, Math.min(1.3, Math.min(cw / W, ch / H)));
+  elFieldZoom.style.setProperty('--fs', fs.toFixed(3));
+}
+
+function renderField(){
+  elField.innerHTML = S.cells.map(function(c, i){
+    const st = c.stage;
+
+    let plants = '';
+    if (st >= 1){
+      const stageName = st === 1 ? 'seed' : (st === 2 ? 'sprout' : 'mature');
+      plants = c.geno.map(function(g, n){
+        const p = PLANT_POS[n] || PLANT_POS[0];
+        return '<div class="plw" style="left:' + p[0] + '%;top:' + p[1] + '%">'
+          + '<div class="pl" data-i="' + i + '" data-n="' + n + '">'
+          + svgPlant(g === 'Aa' ? 'tall' : 'dwarf', stageName) + '</div></div>';
+      }).join('');
+    }
+
+    const cls = ['cell'];
+    if (st === 0) cls.push('empty');
+    // 只标"已成株"，不标高矮 —— 每格原来那块"高茎／矮茎／高2·矮1"的名牌已移除：
+    // 那是用程序替学生把结论念出来，学生就不必再比茎高了。
+    if (st === 3) cls.push('mature');
+
+    return '<div class="' + cls.join(' ') + '" data-drop="cell" data-idx="' + i + '">'
+      + '<span class="slab2"></span><span class="slab1"></span><span class="soil"></span>'
+      + '<span class="hole"></span>'
+      + '<div class="idxw"><span class="idx">' + (i + 1) + '</span></div>'
+      + plants
+      + '</div>';
+  }).join('');
+  fitField();
+}
+
+/* ==========================================================================
+   分类展示：把 48 株从田里"拔出来"，按表型分成左右两堆
+   ========================================================================== */
+/* 采集当前田里每一株的屏幕位置，供 FLIP 飞行使用。
+   键为 "格号-株号"，与分类区每一株的 data-key 一致。 */
+function harvestFieldRects(){
+  const map = {};
+  elField.querySelectorAll('.pl').forEach(function(pl){
+    const r = pl.getBoundingClientRect();
+    map[pl.dataset.i + '-' + pl.dataset.n] = { x: r.left + r.width / 2, y: r.top + r.height / 2, h: r.height };
+  });
+  return map;
+}
+
+function renderSort(){
+  const open = S.sortOpen;
+  document.body.classList.toggle('sorting', open);
+  if (!elBtnSort) return;
+  elBtnSort.style.display = (tally().n === TOTAL_PLANTS && S.step >= 8) ? '' : 'none';
+  elBtnSort.textContent = open ? '↩ 还原田地' : '🔍 分类展示';
+  elBtnSort.classList.toggle('amber', open);
+  if (!open){ elSortWrap.innerHTML = ''; return; }
+
+  // 按表型分堆，保持田间顺序，学生容易一一对应回原格
+  const tall = [], dwarf = [];
+  S.cells.forEach(function(c, i){
+    if (c.stage !== 3) return;
+    c.geno.forEach(function(g, n){
+      (g === 'Aa' ? tall : dwarf).push({ i: i, n: n });
+    });
+  });
+
+  /* 两列用同一个 .ps 容器高度当"同一把尺子"，高矮才有可比性 ——
+     矮茎不是缩小画，而是同一尺度下真的矮。 */
+  const colHTML = function(list, name, ico, pheno){
+    const cells = list.map(function(o){
+      return '<div class="ps" data-key="' + o.i + '-' + o.n + '">' + svgSprig(pheno) + '</div>';
+    }).join('');
+    return '<div class="sortcol' + (list.length ? '' : ' empty') + '">'
+      + '<div class="sortcol-hd">'
+        + '<span class="nm">' + ico + ' ' + name + '</span>'
+        + '<span class="n">' + (list.length ? '数一数' : '—') + '</span>'
+      + '</div>'
+      + '<div class="sortgrid">' + cells + '</div>'
+      + '<div class="colnote">这一堆是空的</div>'
+      + '</div>';
+  };
+
+  elSortWrap.innerHTML =
+    '<div class="sample-check"><div><b>先观察两株代表植株</b><span>不看颜色，只比较从同一条基准线长出的高度。</span></div>'
+      + '<div class="sample-actions"><button data-sample="tall">左边更高</button><button data-sample="dwarf">右边更高</button></div>'
+      + (S.sampleChoice ? '<small>' + (S.sampleChoice === 'tall' ? '判断正确：株高是形态证据。' : '再观察一次：把两株的基部对齐后再比较。') + '</small>' : '')
+    + '</div>'
+    + '<div class="sortcols">'
+      + colHTML(tall, '高茎', '🌿', 'tall')
+      + colHTML(dwarf, '矮茎', '🌱', 'dwarf')
+    + '</div>'
+    + '<div class="sortfoot">'
+      + '<span class="it">高茎 <b>' + tall.length + '</b> 株</span>'
+      + '<span class="sep"></span>'
+      + '<span class="it">矮茎 <b>' + dwarf.length + '</b> 株</span>'
+      + '<span class="sep"></span>'
+      + '<span class="it ratio">比例 <b>' + simplify(tall.length, dwarf.length) + '</b></span>'
+    + '</div>';
+}
+
+/* 点击「分类展示」：
+   ① 田里的 48 株先整体"拔起"（逐株错开的 plucking 动画），同时记录每株的屏幕位置；
+   ② 切到分类区，用 FLIP 把每一株从它在田里的**真实屏幕位置**飞到分类格 ——
+      起止都用 getBoundingClientRect 实测，所以 2.5D 投影、--fs 缩放、窗口尺寸
+      全部被自动吸收，不需要手算任何坐标变换。 */
+let sortBusy = false;
+function toggleSort(){
+  if (sortBusy || S.step < 8 || tally().n !== TOTAL_PLANTS) return;
+  sortBusy = true;
+
+  if (S.sortOpen){                       // 收起：直接还原，田地淡回
+    S.sortOpen = false;
+    renderSort();
+    window.setTimeout(function(){ sortBusy = false; updateGuide(); }, 400);
+    return;
+  }
+
+  const src = harvestFieldRects();
+  Array.from(elField.querySelectorAll('.pl')).forEach(function(pl, k){
+    window.setTimeout(function(){ pl.classList.add('plucking'); }, k * 9);
+  });
+  window.setTimeout(function(){
+    S.sortOpen = true;
+    renderSort();
+    flyFromField(src);
+    window.setTimeout(function(){
+      sortBusy = false; updateGuide();
+      toast('已把 48 株按茎高分成两堆 —— 数一数各有多少株', 'good');
+    }, 640);
+  }, 400);
+}
+
+function flyFromField(src){
+  const ps = Array.from(elSortWrap.querySelectorAll('.ps'));
+  ps.forEach(function(el, k){
+    const s = src[el.dataset.key];
+    const r = el.getBoundingClientRect();
+    if (!s || r.height <= 0){ el.classList.add('in'); return; }
+    const dx = s.x - (r.left + r.width / 2);
+    const dy = s.y - (r.top + r.height / 2);
+    const sc = Math.max(0.12, Math.min(2.4, s.h / r.height));
+    el.style.transition = 'none';
+    el.style.transformOrigin = '50% 100%';          // 以"根部"为锚点缩放，像被拎过来种下
+    el.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) scale(' + sc.toFixed(3) + ')';
+    el.style.opacity = '0.4';
+    window.requestAnimationFrame(function(){
+      window.setTimeout(function(){
+        el.style.transition = 'transform .58s cubic-bezier(.34,1.02,.5,1),opacity .34s';
+        el.style.transform = 'none';
+        el.style.opacity = '1';
+      }, 18 + Math.min(k, 56) * 7);
+    });
+  });
+}
+
+/* ---- 工具 ---- */
+const STEP_TOOLS = {
+  1: ['knife'], 2: ['bag'], 3: [], 4: ['brush'], 5: ['bag'],
+  6: ['seed'],                  // 第 6 步：把豆荚拖进种子盆取种
+  7: ['seed'],                  // 第 7 步：把种子拖进田地
+  8: [], 9: []
+};
+function renderTools(){
+  const allow = STEP_TOOLS[S.step] || [];
+  $$('.tool').forEach(function(t){
+    const k = t.dataset.tool;
+    const ok = allow.indexOf(k) >= 0 && !extraLock(k);
+    t.classList.toggle('lock', !ok);
+    t.classList.toggle('sel', S.selectedTool === k && ok);
+    t.classList.toggle('nextup', ok && allow.length === 1 && allow[0] === k);
+    // 高亮当前应使用的工具
+    t.classList.toggle('pulse',
+      ok && !S.selectedTool && allow.length === 1 && allow[0] === k && stepNeedsTool()
+    );
+  });
+  // 毛笔含粉量
+  elBrushFill.style.width = S.pollen + '%';
+  // 种子盆：采收豆荚之前盆是空的，不显示数字
+  const left = Math.max(0, (TOTAL_CELLS - S.seedIdx) * SEEDS_PER_CELL);
+  elSeedBadge.textContent = String(left);
+  elSeedBadge.style.display = (S.step === 7 && left > 0) ? '' : 'none';
+
+  // 生长按钮
+  elBtnGrow.style.display = (S.step === 8) ? '' : 'none';
+  // 一键播满
+  elBtnSowAll.style.display = (S.step === 7 && S.seedIdx > 0 && S.seedIdx < TOTAL_CELLS) ? '' : 'none';
+  // 若处于"点选工具"模式，保持可放置目标的高亮（DOM 重建后会丢失）
+  if (S.selectedTool) markDroppable(); else clearDroppable();
+}
+
+/* 主体模式：第 1–6 步处于"操作台模式"（第 6 步的豆荚也长在操作台上，同样要放大）；
+   第 7 步显示空穴待播；第 7 步起操作台收窄，把高度让给田地。 */
+function syncBodyClass(){
+  document.body.classList.toggle('ops', S.step <= 6);
+  document.body.classList.toggle('maturing', S.maturing === true);
+  document.body.classList.toggle('harvesting', S.step === 6 && !S.maturing);
+  document.body.classList.toggle('sowing', S.step === 7);
+  document.body.classList.toggle('grown', S.step >= 7);
+}
+
+/* ==========================================================================
+   注意力引导：聚光灯 + 虚拟手指
+   ========================================================================== */
+let hotEl = null;
+function toolEl(k){ return $('.tool[data-tool="' + k + '"]'); }
+function firstBloomIdx(pred){
+  for (let i = 0; i < FLOWER_N; i++){ if (pred(S.flowers[i])) return i; }
+  return -1;
+}
+function bloomEl(i){ return i < 0 ? null : elBlooms.querySelector('.bloom[data-idx="' + i + '"]'); }
+
+/* 当前步骤要求学生做的动作 */
+function guideSpec(){
+  if (S.step === 1){
+    const el = bloomEl(firstBloomIdx(function(f){ return !f.emas; }));
+    return el ? { el: el, mode: 'sweepX' } : null;
+  }
+  // 套袋 / 再套袋：目标从"整株"改成"还没套的那一朵"
+  if (S.step === 2 || S.step === 5){
+    const el = bloomEl(firstBloomIdx(function(f){ return !f.bag; }));
+    return el ? { el: el, mode: 'drag', from: toolEl('bag') } : null;
+  }
+  if (S.step === 3){
+    const el = elAnthers.querySelector('.bloom');
+    return el ? { el: el, mode: 'sweepX' } : null;
+  }
+  if (S.step === 4){
+    // 4a 还有袋子罩着 → 演示"往上提"
+    const bi = firstBloomIdx(function(f){ return f.bag; });
+    if (bi >= 0){
+      const be = bloomEl(bi);
+      const cover = be ? be.querySelector('.cover.liftable') : null;
+      return { el: cover || be, mode: 'sweepY' };
+    }
+    // 4b 袋子都揭完了 → 演示"横向涂抹"
+    const el = bloomEl(firstBloomIdx(function(f){ return f.emas && !f.fert; }));
+    return el ? { el: el, mode: 'sweepX' } : null;
+  }
+  if (S.step === 6){
+    if (S.maturing) return null;
+    const i = S.podTaken.indexOf(false);
+    const el = i < 0 ? null : bloomEl(i);
+    const pod = el ? el.querySelector('.bhead.podmode') : null;
+    return (pod || el) ? { el: pod || el, mode: 'drag', from: pod || el, to: elHarvestPot } : null;
+  }
+  if (S.step === 7){
+    let idx = -1;
+    for (let i = 0; i < TOTAL_CELLS; i++){ if (S.cells[i].stage === 0){ idx = i; break; } }
+    const el = idx < 0 ? null : elField.querySelector('[data-idx="' + idx + '"]');
+    return el ? { el: el, mode: 'drag', from: toolEl('seed') } : null;
+  }
+  if (S.step === 8) return { el: elBtnGrow, mode: 'tap' };
+  if (S.step === 9 && !S.sortOpen && elBtnSort) return { el: elBtnSort, mode: 'tap' };
+  return null;
+}
+
+/* 聚光灯只打在"操作台"上（第 1–6 步）。
+   第 7–9 步一律不打：那时田地才是主角，压暗它反而看不清 48 株子代的分布；
+   这几个阶段的引导改由「顶部指令卡 + 目标元素脉冲 + 底部提示条」承担。 */
+function spotEl(){
+  if (S.step <= 6){
+    if (S.step === 3) return $('#cardFather');
+    return $('#cardMother');
+  }
+  if (S.step === 8) return elBtnGrow;
+  return null;
+}
+
+function updateGuide(){
+  // 聚光灯
+  const sp = spotEl();
+  if (hotEl && hotEl !== sp) hotEl.classList.remove('hot');
+  if (!sp || document.body.classList.contains('zen')){
+    elVeil.classList.remove('on');
+    if (sp) sp.classList.remove('hot');
+    hotEl = null;
+  } else {
+    const r = sp.getBoundingClientRect();
+    const pad = 9;
+    elVeil.style.left   = (r.left - pad) + 'px';
+    elVeil.style.top    = (r.top - pad) + 'px';
+    elVeil.style.width  = (r.width + pad * 2) + 'px';
+    elVeil.style.height = (r.height + pad * 2) + 'px';
+    elVeil.classList.add('on');
+    sp.classList.add('hot');
+    hotEl = sp;
+  }
+
+  // 虚拟手指
+  const g = guideSpec();
+  const zen = document.body.classList.contains('zen');
+  if (!g || !g.el || zen){
+    elHand.className = '';
+    return;
+  }
+  const r = g.el.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  elHand.style.setProperty('--x1', (cx - 15) + 'px');
+  elHand.style.setProperty('--y1', (cy - 22) + 'px');
+  /* 提示图标随动作换：切花蕊用刀（🔪）、涂抹花粉用毛笔（🖌）、
+     拖拽用被拖的那件工具的图标、其余用食指。 */
+  let ico = '👆';
+  if (g.mode === 'sweepX') ico = (S.step === 1) ? '🔪' : '🖌';
+  else if (g.mode === 'drag' && g.from) ico = toolEmoji(g.from.dataset.tool) || '👆';
+
+  if (g.mode === 'drag' && g.from){
+    const fr = g.from.getBoundingClientRect();
+    const to = g.to && g.to.getBoundingClientRect ? g.to.getBoundingClientRect() : r;
+    elHand.style.setProperty('--x2', (to.left + to.width / 2 - 15) + 'px');
+    elHand.style.setProperty('--y2', (to.top + to.height / 2 - 22) + 'px');
+    elHand.style.setProperty('--x1', (fr.left + fr.width / 2 - 15) + 'px');
+    elHand.style.setProperty('--y1', (fr.top + fr.height / 2 - 22) + 'px');
+    elHand.className = 'on drag';
+  } else if (g.mode === 'sweepX'){
+    elHand.className = 'on sweepX' + (S.step === 1 ? ' knifeDemo' : '');
+  } else if (g.mode === 'sweepY'){
+    elHand.className = 'on sweepY';
+  } else {
+    elHand.className = 'on tap';
+  }
+  elHand.textContent = ico;
+}
+
+function stepNeedsTool(){
+  return [1,2,3,4,5,6,7].indexOf(S.step) >= 0;
+}
+function extraLock(k){
+  if (k === 'brush' && S.step === 4 && S.pollen <= 0) return true;
+  if (k === 'bag' && (S.step === 2 || S.step === 5) && bagCount() === FLOWER_N) return true;
+  return false;
+}
+
+/* 光标经过时判定该 drop 目标是否接受当前拖拽物。
+   注意 bag 的落点从 mplant（整株）改成了 mflower（某一朵花）——
+   "套袋"现在是逐朵进行的，3 朵花就套 3 次。 */
+function accepts(tool, drop){
+  if (tool === 'pod')   return drop === 'seedpot';
+  if (tool === 'knife') return drop === 'mflower';
+  if (tool === 'bag')   return drop === 'mflower';
+  if (tool === 'brush') return drop === 'fflower' || drop === 'mflower';
+  if (tool === 'seed')  return drop === 'cell';
+  return false;
+}
+
+/* ---- 统计 ---- */
+function tally(){
+  let tall = 0, dwarf = 0, sown = 0;
+  S.cells.forEach(function(c){
+    if (c.stage > 0) sown += SEEDS_PER_CELL;
+    if (c.stage === 3) c.geno.forEach(function(g){ g === 'Aa' ? tall++ : dwarf++; });
+  });
+  return { tall: tall, dwarf: dwarf, n: tall + dwarf, sown: sown };
+}
+
+function renderStats(animate){
+  const t = tally();
+  if (t.n === 0){
+    elStats.innerHTML = '<div class="empty-note">'
+      + (t.sown > 0
+          ? '已播种 ' + t.sown + ' 株，等待生长<br/>点击「🌱 让它们生长」'
+          : '完成授粉并播种、生长后<br/>这里会实时统计高茎与矮茎的株数')
+      + '</div>';
+    return;
+  }
+  const p = t.tall / t.n;
+  const exp = expectedExpected();          // 预期高茎占比
+  const dev = Math.abs(p - exp);
+  const alert = dev > 0.12;
+
+  const ratioTxt = simplify(t.tall, t.dwarf);
+
+  elStats.innerHTML =
+    '<div class="counts">'
+    + '<div class="cnt tall' + (animate ? ' pop' : '') + '"><div class="cn">' + t.tall + '</div><div class="cl">高茎植株</div></div>'
+    + '<div class="cnt dwarf' + (animate ? ' pop' : '') + '"><div class="cn">' + t.dwarf + '</div><div class="cl">矮茎植株</div></div>'
+    + '</div>'
+    + '<div class="ratio-strip' + (alert ? ' alert' : '') + '">'
+      + '<span class="rl">实测分离比</span>'
+      + '<span class="rv">' + ratioTxt + '</span>'
+    + '</div>'
+    + '<div class="chartbox">' + chartSVG(t, exp) + '</div>'
+    + '<div class="cmp">' + cmpRows(t, exp) + '</div>'
+    + (t.n < TOTAL_PLANTS ? '<div class="empty-note" style="padding:8px 0 0">样本量 n = ' + t.n + '，继续观察全部植株</div>' : '');
+
+  const popEls = elStats.querySelectorAll('.cnt');
+  if (animate) window.setTimeout(function(){ popEls.forEach(function(x){ x.classList.remove('pop'); }); }, 600);
+}
+
+function expectedExpected(){
+  // 演绎推理给出的预期：高茎占 1/2（1:1）
+  return 0.5;
+}
+
+function simplify(a, b){
+  if (!a && !b) return '—';
+  if (!a) return '0 : ' + b;
+  if (!b) return a + ' : 0';
+  const g = gcd(a, b);
+  return (a / g) + ' : ' + (b / g);
+}
+function gcd(a, b){ return b ? gcd(b, a % b) : a; }
+
+function chartSVG(t, exp){
+  const W = 300, H = 150, base = 118, maxH = 88, bw = 54, gap = 44;
+  const x1 = W / 2 - gap / 2 - bw, x2 = W / 2 + gap / 2;
+  const h1 = t.n ? (t.tall / t.n) * maxH : 0;
+  const h2 = t.n ? (t.dwarf / t.n) * maxH : 0;
+  const yExp = base - exp * maxH;
+  const cols = ['#3FA46A', '#D08A3E'];
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="高茎与矮茎株数对比">';
+  s += '<line x1="20" y1="' + base + '" x2="' + (W - 20) + '" y2="' + base + '" stroke="#E1E8E4" stroke-width="1.5"/>';
+  // 预期参考线
+  s += '<line x1="20" y1="' + yExp + '" x2="' + (W - 20) + '" y2="' + yExp + '" stroke="#93A19B" stroke-width="1.4" stroke-dasharray="5 4"/>';
+  s += '<text x="' + (W - 18) + '" y="' + (yExp - 6) + '" font-size="10.5" font-weight="600" fill="#7A8880" text-anchor="end">预期 1∶1</text>';
+  // 揭晓致死条件后，叠加"修正假说后"的预期参考线
+  if (S.cond === 'mystery' && S.revealed){
+    const yFix = base - (2 / 3) * maxH;
+    s += '<line x1="20" y1="' + yFix + '" x2="' + (W - 20) + '" y2="' + yFix + '" stroke="#F0A020" stroke-width="1.4" stroke-dasharray="5 4"/>';
+    s += '<text x="18" y="' + (yFix - 6) + '" font-size="10.5" font-weight="700" fill="#C07A00">修正后 2∶1</text>';
+  }
+  // 柱
+  s += '<rect x="' + x1 + '" y="' + (base - h1) + '" width="' + bw + '" height="' + h1 + '" rx="5" fill="' + cols[0] + '"/>';
+  s += '<rect x="' + x2 + '" y="' + (base - h2) + '" width="' + bw + '" height="' + h2 + '" rx="5" fill="' + cols[1] + '"/>';
+  // 数值：默认放在柱体内部，避免与参考线标签打架；柱子过矮时才移到柱顶上方
+  const inH = 22;   // 高于这个高度就把数值放进柱体内部
+  const vy1 = h1 > inH ? (base - h1 + 20) : (base - h1 - 7);
+  const vy2 = h2 > inH ? (base - h2 + 20) : (base - h2 - 7);
+  s += '<text x="' + (x1 + bw / 2) + '" y="' + vy1 + '" font-size="15" font-weight="800" fill="' + (h1 > inH ? '#FFFFFF' : cols[0]) + '" text-anchor="middle">' + t.tall + '</text>';
+  s += '<text x="' + (x2 + bw / 2) + '" y="' + vy2 + '" font-size="15" font-weight="800" fill="' + (h2 > inH ? '#FFFFFF' : cols[1]) + '" text-anchor="middle">' + t.dwarf + '</text>';
+  // x 标签
+  s += '<text x="' + (x1 + bw / 2) + '" y="' + (base + 16) + '" font-size="11.5" font-weight="600" fill="#5A6B64" text-anchor="middle">高茎</text>';
+  s += '<text x="' + (x2 + bw / 2) + '" y="' + (base + 16) + '" font-size="11.5" font-weight="600" fill="#5A6B64" text-anchor="middle">矮茎</text>';
+  // 百分比
+  if (t.n){
+    s += '<text x="' + (x1 + bw / 2) + '" y="' + (base + 31) + '" font-size="10.5" fill="#93A19B" text-anchor="middle">' + (t.tall / t.n * 100).toFixed(1) + '%</text>';
+    s += '<text x="' + (x2 + bw / 2) + '" y="' + (base + 31) + '" font-size="10.5" fill="#93A19B" text-anchor="middle">' + (t.dwarf / t.n * 100).toFixed(1) + '%</text>';
+  }
+  s += '</svg>';
+  return s;
+}
+
+function cmpRows(t, exp){
+  const p = t.n ? t.tall / t.n : 0;
+  const dev = t.n ? (p - exp) : 0;
+  const sign = dev >= 0 ? '+' : '';
+  const cls = Math.abs(dev) > 0.12 ? ' alert' : '';
+  return '<div class="cmprow' + cls + '">'
+    + '<span class="ck">预期</span>'
+    + '<span class="cbar"><i style="width:' + (exp * 100) + '%;background:#93A19B"></i></span>'
+    + '<span class="cv">' + Math.round(exp * 100) + '%</span></div>'
+    + '<div class="cmprow' + cls + '">'
+    + '<span class="ck">实测</span>'
+    + '<span class="cbar"><i style="width:' + (p * 100) + '%;background:#2E7D5B"></i></span>'
+    + '<span class="cv">' + (t.n ? (p * 100).toFixed(1) + '%' : '—') + '</span></div>'
+    + (t.n ? '<div class="cmprow' + cls + '"><span class="ck">偏差</span>'
+        + '<span class="cbar"></span><span class="cv">' + sign + (dev * 100).toFixed(1) + '%</span></div>' : '');
+}
+
+/* ==========================================================================
+   结论区
+   ========================================================================== */
+function renderConcl(){
+  if (S.step < STEP_N){
+    elConcl.innerHTML = '<div class="empty-note">实验完成后，在这里作出判断</div>';
+    return;
+  }
+  const t = tally();
+  const isNormal = S.cond === 'normal';
+  let html = '';
+
+  // 判定
+  html += '<div class="verdict ' + (isNormal ? 'ok' : 'bad') + '">'
+    + '<span class="v-ico">' + (isNormal ? '✅' : '⚠️') + '</span>'
+    + '<span>实测 <b>高茎 ' + t.tall + ' 株 ∶ 矮茎 ' + t.dwarf + ' 株</b>，即 <b>'
+    + simplify(t.tall, t.dwarf) + '</b>。'
+    + (isNormal
+        ? '与演绎推理的预期 <b>1 ∶ 1</b> 相符 —— <b>假说得到验证</b>。'
+        : '与演绎推理的预期 <b>1 ∶ 1</b> <b>明显不符</b>！')
+    + '</span></div>';
+
+  if (isNormal){
+    if (!S.answered.qA){
+      html += qbox('qA', '这个结果说明什么？', [
+        { v:'a', t:'孟德尔的假说被实验推翻了' },
+        { v:'b', t:'F₁（Aa）产生了 A 和 a 两种配子，且比例接近 1∶1，假说得到验证' },
+        { v:'c', t:'矮茎是显性性状' }
+      ]);
+    } else {
+      html += answerFeedback('qA', S.answered.qA, 'b',
+        'F₁ 高茎（Aa）形成配子时，成对的遗传因子彼此分离，产生 A、a 两种配子且数量相等（1∶1）。隐性纯合子（aa）只产生 a 一种配子，不会掩盖 F₁ 配子的表达，所以后代表现为高茎∶矮茎 = 1∶1。');
+      html += '<button class="gbtn nextbtn" id="btnNextRound">切换到「异常条件」，进行第 2 轮实验 →</button>';
+    }
+  } else {
+    if (S.answered.qB !== 'b'){
+      html += qbox('qB', '面对这个与预期不符的结果，最合理的做法是：', [
+        { v:'a', t:'直接宣布孟德尔的分离定律是错误的' },
+        { v:'b', t:'先检查实验操作有无失误，再考虑是否存在某种额外条件（如某类配子部分死亡），对假说作出修正' },
+        { v:'c', t:'把结果改写成 1∶1，让它与预期一致' }
+      ]);
+    } else {
+      html += answerFeedback('qB', S.answered.qB, 'b',
+        '实验结果与预期不符时，不能篡改数据，也不应立刻否定假说。正确路径是：核查操作 → 排查额外条件 → 修正假说 → 再次演绎检验。');
+      if (!S.revealed){
+        html += '<button class="gbtn amber nextbtn" id="btnReveal">🔎 揭晓本轮被隐藏的条件</button>';
+      }
+    }
+
+    if (S.revealed){
+      html += '<div class="reveal">'
+        + '<b>隐藏条件揭晓：</b>本轮实验中，父本 F₁（Aa）产生的<strong>含 a 的花粉（雄配子）有 50% 死亡</strong>。<br/><br/>'
+        + '于是父本有效花粉 <b>A ∶ a = 1 ∶ 0.5 = 2 ∶ 1</b>；母本（aa）只提供 a 雌配子。'
+        + '子代 <b>Aa ∶ aa = 2 ∶ 1</b>，即高茎∶矮茎 = <b>2 ∶ 1</b>，与实测吻合。'
+        + '</div>'
+        + '<div class="summary">'
+        + '<b>🧠 关键区分</b><br/>'
+        + '① 发生致死的是<b>雄配子</b>（花粉），且是<b>含 a 的那一类</b>；<br/>'
+        + '② 致死改变的是配子的<b>比例</b>，不是配子的<b>种类</b>；<br/>'
+        + '③ 分离定律（配子形成与随机结合）<b>依然成立</b>，只是需要补充一个额外条件 ——'
+        + '这属于对假说的<b>修正</b>，而不是<b>否定</b>。'
+        + '</div>';
+      if (S.rounds.length >= 2){
+        html += comparisonBlock();
+      }
+    }
+  }
+
+  elConcl.innerHTML = html;
+  bindConcl();
+}
+
+function qbox(key, q, opts){
+  let h = '<div class="qbox"><div class="q">❓ ' + q + '</div>';
+  h += opts.map(function(o){
+    return '<button class="opt" data-q="' + key + '" data-v="' + o.v + '">'
+      + '<span class="ok-ico">✓</span><span>' + o.t + '</span></button>';
+  }).join('');
+  return h + '</div>';
+}
+
+function answerFeedback(key, picked, correct, why){
+  const right = picked === correct;
+  return '<div class="qbox">'
+    + '<div class="opt ' + (right ? 'right' : 'wrong') + '" style="pointer-events:none">'
+    + '<span class="ok-ico">' + (right ? '✓' : '×') + '</span>'
+    + '<span>' + (right ? '回答正确' : '再想一想 —— 结果与预期不符时，证据不能被改写，假说也不该被一句话否定') + '</span>'
+    + '</div>'
+    + '<div class="summary">' + why + '</div>'
+    + '</div>';
+}
+
+function comparisonBlock(){
+  const a = S.rounds[0], b = S.rounds[1];
+  if (!a || !b) return '';
+  return '<div class="summary" style="background:var(--info-l);border-color:#CFE0F8;color:#1F4A87">'
+    + '<b>📊 两轮实验对照</b><br/>'
+    + '第 1 轮（正常条件）：高 ' + a.tall + ' ∶ 矮 ' + a.dwarf + ' = <b>' + simplify(a.tall, a.dwarf) + '</b> → 与预期 1∶1 相符<br/>'
+    + '第 2 轮（含 a 雄配子半数致死）：高 ' + b.tall + ' ∶ 矮 ' + b.dwarf + ' = <b>' + simplify(b.tall, b.dwarf) + '</b> → 需补充条件才能解释'
+    + '</div>';
+}
+
+function bindConcl(){
+  elConcl.querySelectorAll('.opt[data-q]').forEach(function(b){
+    b.addEventListener('click', function(){
+      const k = b.dataset.q, v = b.dataset.v;
+      const correct = k === 'qA' ? 'b' : 'b';
+      S.answered[k] = v;
+      if (v === correct) toast('回答正确 ✓', 'good');
+      else toast('再想一想 —— 这个思路站不住脚', 'bad');
+      renderConcl();
+    });
+  });
+  const nr = $('#btnNextRound');
+  if (nr) nr.addEventListener('click', function(){
+    switchCond('mystery', true);
+    toast('已切换到「异常条件」—— 本轮条件被隐藏，请通过实验找出它', 'good');
+  });
+  const rv = $('#btnReveal');
+  if (rv) rv.addEventListener('click', function(){
+    S.revealed = true;
+    elCond2Label.textContent = '含 a 雄配子 50% 致死 ✓';
+    $('#fatherGeno').textContent = 'Aa（含 a 花粉 ½ 致死）';
+    renderConcl(); renderStats(false);
+    toast('条件已揭晓', 'good');
+  });
+}
+
+/* ---- 历史记录 ---- */
+function renderHist(){
+  if (!S.rounds.length){
+    elHist.innerHTML = '<div class="empty-note">尚无记录</div>';
+    return;
+  }
+  elHist.innerHTML = S.rounds.map(function(r, i){
+    const bad = Math.abs(r.tall / r.n - 0.5) > 0.12;
+    return '<div class="cmprow" style="margin-bottom:8px' + (bad ? ' alert' : '') + '">'
+      + '<span class="ck">第 ' + (i + 1) + ' 轮</span>'
+      + '<span class="cbar"><i style="width:' + (r.tall / r.n * 100) + '%;background:#3FA46A"></i>'
+      + '<i style="width:' + (r.dwarf / r.n * 100) + '%;background:#D08A3E"></i></span>'
+      + '<span class="cv">' + simplify(r.tall, r.dwarf) + '</span></div>';
+  }).join('');
+}
+
+/* ==========================================================================
+   交互 · 拖拽 / 点选
+   ========================================================================== */
+let drag = null;
+/* 拖拽结束时浏览器可能在落点补发一次 click，这里按"落点坐标 + 极短时间"精确过滤，
+   避免误吞学生紧接着的正当点击 */
+let dragEnd = { t:-1e9, x:-1e9, y:-1e9 };
+function isGhostClick(e){
+  return (Date.now() - dragEnd.t < 400)
+      && Math.abs(e.clientX - dragEnd.x) < 12
+      && Math.abs(e.clientY - dragEnd.y) < 12;
+}
+
+function toolEnabled(k){
+  const allow = STEP_TOOLS[S.step] || [];
+  return allow.indexOf(k) >= 0 && !extraLock(k);
+}
+
+function onToolDown(e){
+  const btn = e.currentTarget;
+  const k = btn.dataset.tool;
+  if (!toolEnabled(k)){ toast(blockedMsg(k), 'bad'); return; }
+  e.preventDefault();
+  drag = { tool:k, x0:e.clientX, y0:e.clientY, moved:false, el:null };
+  document.addEventListener('pointermove', onPointerMove);
+  document.addEventListener('pointerup', onPointerUp);
+  document.addEventListener('pointercancel', onPointerUp);
+}
+
+function onPointerMove(e){
+  if (!drag) return;
+  const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+  if (!drag.moved && Math.sqrt(dx * dx + dy * dy) > 8){
+    drag.moved = true;
+    const g = document.createElement('div');
+    g.className = 'ghost-el';
+    g.innerHTML = '<span>' + toolEmoji(drag.tool) + '</span><span>' + TOOL_LABEL[drag.tool] + '</span>';
+    document.body.appendChild(g);
+    drag.el = g;
+    document.body.classList.add('dragging');
+    S.selectedTool = null;
+    markDroppable();
+  }
+  if (drag.moved){
+    drag.el.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
+    hoverHit(e.clientX, e.clientY);
+  }
+}
+
+function onPointerUp(e){
+  document.removeEventListener('pointermove', onPointerMove);
+  document.removeEventListener('pointerup', onPointerUp);
+  document.removeEventListener('pointercancel', onPointerUp);
+  if (!drag) return;
+  const d = drag; drag = null;
+  document.body.classList.remove('dragging');
+  clearDroppable();
+  if (d.el) d.el.remove();
+
+  if (d.moved){
+    dragEnd = { t:Date.now(), x:e.clientX, y:e.clientY };
+    const stepBefore = S.step;
+    const t = dropTargetAt(e.clientX, e.clientY, d.tool);
+    if (t){
+      const done = fire(d.tool, t, d);
+      // 拖拽成功后保持工具选中：拖 1 次 + 连点其余目标，播 9 穴不必拖 9 次
+      // （豆荚不是"工具"，不参与选中态）
+      if (done && S.step === stepBefore && d.tool !== 'pod') S.selectedTool = d.tool;
+      renderTools();
+    } else {
+      toast(toolHint(d.tool), 'bad');
+    }
+  } else if (d.tool !== 'pod'){
+    // 轻点 = 选中工具
+    S.selectedTool = (S.selectedTool === d.tool) ? null : d.tool;
+    renderTools();
+    if (S.selectedTool){
+      markDroppable();
+      toast('已选中「' + TOOL_LABEL[d.tool] + '」，再点击目标位置即可', 'good');
+    } else clearDroppable();
+  }
+}
+
+/* 豆荚自己就是"拖拽源"（而不是先选工具再点目标）：
+   把手按在豆荚上、拖进种子盆取种 —— 与"摘下一个荚、把种子倒进盆里"的直觉一致。 */
+function startPodDrag(e, i){
+  drag = { tool:'pod', podIdx:i, x0:e.clientX, y0:e.clientY, moved:false, el:null };
+  document.addEventListener('pointermove', onPointerMove);
+  document.addEventListener('pointerup', onPointerUp);
+  document.addEventListener('pointercancel', onPointerUp);
+  // 唯一的合法落点是种子盆，直接把它高亮出来
+  const pot = toolEl('seed');
+  if (pot) pot.classList.add('droppable');
+}
+
+/* 从落点向上回溯，找到最近一个"接受该工具"的放置目标。
+   这样把纸袋丢在母本卡片中央（恰好压在某朵花上）时也不会误判失败。 */
+function resolveTarget(tool, el){
+  let node = (el && el.closest) ? el.closest('[data-drop]') : null;
+  while (node){
+    if (accepts(tool, node.dataset.drop)) return node;
+    const p = node.parentElement;
+    node = p ? p.closest('[data-drop]') : null;
+  }
+  return null;
+}
+
+function dropTargetAt(x, y, tool){
+  return resolveTarget(tool, document.elementFromPoint(x, y));
+}
+
+function toolHint(tool){
+  if (tool === 'knife') return '用解剖刀横向划过花蕾（也可把它拖到花上），切掉雄蕊';
+  if (tool === 'bag')   return '把纸袋拖到某一朵花上 —— 3 朵花要分别套 3 次';
+  if (tool === 'brush') return S.step === 3
+    ? '请把毛笔拖到父本的花药上（也可横向划过花药）'
+    : '请把毛笔拖到母本已去雄的花朵上（也可横向划过）';
+  if (tool === 'seed')  return '请把种子拖到空穴里';
+  if (tool === 'pod')   return '把豆荚拖到工具架的种子盆里，取出种子';
+  return '这个位置不能使用该工具';
+}
+
+function markDroppable(){
+  clearDroppable();
+  if (!S.selectedTool) return;
+  $$('[data-drop]').forEach(function(t){
+    if (accepts(S.selectedTool, t.dataset.drop) && targetUsable(S.selectedTool, t)) t.classList.add('droppable');
+  });
+}
+function clearDroppable(){
+  $$('.droppable').forEach(function(t){ t.classList.remove('droppable'); });
+  $$('.hit').forEach(function(t){ t.classList.remove('hit'); });
+}
+
+function hoverHit(x, y){
+  $$('.hit').forEach(function(t){ t.classList.remove('hit'); });
+  const t = dropTargetAt(x, y, drag.tool);
+  if (t && targetUsable(drag.tool, t)) t.classList.add('hit');
+}
+
+function targetUsable(tool, t){
+  const d = t.dataset.drop;
+  const i = +t.dataset.idx;
+  if (tool === 'pod') return d === 'seedpot' && S.step === 6 && !S.podTaken[i];
+  if (d === 'cell') return S.cells[i].stage === 0 && S.step === 7;
+  if (d === 'mflower'){
+    if (tool === 'knife') return S.step === 1 && !S.flowers[i].emas;
+    if (tool === 'bag')   return (S.step === 2 || S.step === 5) && !S.flowers[i].bag;
+    if (tool === 'brush') return S.step === 4 && !S.flowers[i].bag && S.pollen > 0
+                                && S.flowers[i].emas && !S.flowers[i].fert;
+  }
+  if (d === 'fflower') return S.step === 3 && tool === 'brush' && S.pollen <= 0;
+  return false;
+}
+
+/* 点选模式下的点击（揭袋已改为上滑手势，不再走点击） */
+document.addEventListener('click', function(e){
+  if (isGhostClick(e)) return;
+  if (!S.selectedTool) return;
+  const t = resolveTarget(S.selectedTool, e.target);
+  if (t){ fire(S.selectedTool, t); return; }
+  if (e.target.closest('[data-drop]')) toast(toolHint(S.selectedTool), 'bad');
+});
+
+function fire(tool, t, src){
+  const d = t.dataset.drop;
+  const i = +t.dataset.idx;
+  if (!targetUsable(tool, t)){ toast(contextMsg(tool, t), 'bad'); return false; }
+
+  // 豆荚：拖拽源携带自己的索引，落点是种子盆
+  if (tool === 'pod' && d === 'seedpot'){      actHarvest(src ? src.podIdx : i); return true; }
+  if (d === 'mflower' && tool === 'knife'){    actEmas(i);    return true; }
+  if (d === 'mflower' && tool === 'bag'){      actBag(i);     return true; }
+  if (d === 'mflower' && tool === 'brush'){    actFert(i);    return true; }
+  if (d === 'fflower' && tool === 'brush'){    actCollect();  return true; }
+  if (d === 'cell'    && tool === 'seed'){     actSow(i);     return true; }
+  return false;
+}
+
+/* 工具按钮 */
+$$('.tool').forEach(function(b){ b.addEventListener('pointerdown', onToolDown); });
+
+/* ==========================================================================
+   手势：横向切割 / 涂抹 / 向上揭袋
+   ========================================================================== */
+let stroke = null;
+const STROKE_LEN = 46;                 // 触发所需的滑动距离（px）
+let strokeAt = -1e9;
+
+function strokeStart(e, kind, idx, el){
+  if (stroke) return;
+  stroke = { kind:kind, idx:idx, el:el, x0:e.clientX, y0:e.clientY, p:0, done:false };
+  strokeAt = Date.now();
+  el.classList.add('stroking');
+  stroke.track = el.querySelector('.stroke i');
+  stroke.visualEl = kind === 'lift' ? el.querySelector('.cover.liftable') : null;
+  try { el.setPointerCapture(e.pointerId); } catch(err){}
+  document.addEventListener('pointermove', strokeMove, {passive:false});
+  document.addEventListener('pointerup', strokeEnd);
+  document.addEventListener('pointercancel', strokeEnd);
+}
+
+function strokeMove(e){
+  if (!stroke) return;
+  e.preventDefault();
+  const dx = e.clientX - stroke.x0, dy = e.clientY - stroke.y0;
+  let p = 0;
+  if (stroke.kind === 'lift'){
+    if (dy > -8) return;                                   // 必须向上滑
+    p = Math.min(1, (-dy) / 46);
+  } else {
+    if (Math.abs(dx) < Math.abs(dy) * 0.9) return;         // 必须横向滑
+    p = Math.min(1, Math.abs(dx) / STROKE_LEN);
+  }
+  stroke.p = p;
+  if (stroke.track) stroke.track.style.width = (p * 100) + '%';
+  if (stroke.visualEl){
+    stroke.visualEl.style.transition = 'none';
+    stroke.visualEl.style.transform = 'translate(-50%,' + (-p * 42) + 'px) scale(' + (1 - p * .08) + ')';
+    stroke.visualEl.style.opacity = String(1 - p * .12);
+  }
+  if (p >= 1 && !stroke.done){ stroke.done = true; strokeFinish(); }
+}
+
+function strokeCleanup(){
+  if (!stroke) return;
+  document.removeEventListener('pointermove', strokeMove);
+  document.removeEventListener('pointerup', strokeEnd);
+  document.removeEventListener('pointercancel', strokeEnd);
+  if (stroke.el) stroke.el.classList.remove('stroking');
+  if (stroke.visualEl){
+    stroke.visualEl.style.transition = '';
+    stroke.visualEl.style.transform = '';
+    stroke.visualEl.style.opacity = '';
+  }
+  stroke = null;
+}
+
+function strokeEnd(e){
+  if (!stroke) return;
+  const s = stroke;
+  // 复用 ghost-click 机制，吞掉手势结束后浏览器补发的那一次 click
+  dragEnd = { t: Date.now(), x: e.clientX, y: e.clientY };
+  strokeCleanup();
+  if (s.done) return;
+  if (s.kind === 'lift') toast('按住纸袋往上滑，就能把这个袋子揭下来 ⬆', 'bad');
+  else if (s.kind === 'smear') toast('用毛笔横向划过花朵 —— 从一侧划到另一侧 ↔', 'bad');
+  else if (s.kind === 'absorb') toast('用毛笔横向划过花药，把花粉刷下来 ↔', 'bad');
+  else toast('用解剖刀横向划过花蕾 —— 像切东西那样 ↔', 'bad');
+}
+
+function strokeFinish(){
+  const s = stroke;
+  strokeCleanup();
+  if (s.kind === 'cut')         actEmas(s.idx);
+  else if (s.kind === 'smear')  actFert(s.idx);
+  else if (s.kind === 'absorb') actCollect();
+  else if (s.kind === 'lift')   doDeflower(s.idx);
+}
+
+/* 手势落点绑定：只有"当前该做这件事"的那一朵花才响应手势。
+   三条分支都作用在**花枝上的花头**本身（不是卡片背景）：
+   切雄蕊、揭袋子、涂抹授粉 —— 学生的动作始终对着"这一朵花"。 */
+elBlooms.addEventListener('pointerdown', function(e){
+  const el = e.target.closest('.bloom');
+  if (!el) return;
+  const i = +el.dataset.idx;
+
+  // 第 6 步：花已谢，顶端换成豆荚 —— 按住豆荚拖进种子盆取种
+  if (S.step === 6){
+    if (!e.target.closest('.bhead.podmode') || S.podTaken[i]) return;
+    e.preventDefault();
+    startPodDrag(e, i);
+    return;
+  }
+
+  const f = S.flowers[i];
+  if (S.step === 1 && !f.emas){
+    S.selectedTool = 'knife'; renderTools();
+    e.preventDefault(); strokeStart(e, 'cut', i, el); return;
+  }
+  if (S.step === 4){
+    if (f.bag){                              // 还罩着袋子 → 按住袋子往上提
+      if (!e.target.closest('.cover.liftable')) return;
+      e.preventDefault(); strokeStart(e, 'lift', i, el); return;
+    }
+    if (S.pollen > 0 && f.emas && !f.fert){  // 袋子已揭 → 涂抹授粉
+      e.preventDefault(); strokeStart(e, 'smear', i, el); return;
+    }
+  }
+});
+elAnthers.addEventListener('pointerdown', function(e){
+  const el = e.target.closest('.bloom');
+  if (!el) return;
+  if (S.step !== 3 || S.pollen > 0) return;
+  S.selectedTool = 'brush'; renderTools();
+  e.preventDefault();
+  strokeStart(e, 'absorb', +el.dataset.idx, el);
+});
+
+/* ==========================================================================
+   动作
+   ========================================================================== */
+function actEmas(i){
+  S.flowers[i].emas = true;
+  justCut = i;
+  renderParents(); renderTools(); renderCue(); updateGuide();
+  window.setTimeout(function(){
+    justCut = -1;
+    if (!stroke) renderParents();
+  }, 780);
+  const left = FLOWER_N - S.flowers.filter(function(f){ return f.emas; }).length;
+  if (left > 0) toast('第 ' + (FLOWER_N - left) + ' 朵花蕊已切掉，还剩 ' + left + ' 朵', 'good', 'emas');
+  else { toast('✓ 3 朵花的雄蕊全部切除 —— 母本已无法自花传粉', 'good'); advance(2); }
+}
+
+/* 套袋：一次只套一朵。3 朵花就得拖 3 次 —— 每朵花是独立的一株"隔离对象"，
+   不存在"一个袋子罩住整株"这种事；这比原来的整株覆盖更贴近真实操作。 */
+function actBag(i){
+  const f = S.flowers[i];
+  if (!f || f.bag) return;
+  f.bag = true;
+  justBagged = i;
+  syncBagged();
+  renderParents(); renderTools(); renderCue(); updateGuide();
+  const left = FLOWER_N - bagCount();
+  const firstTime = S.step === 2;
+  if (left > 0){
+    toast((firstTime ? '第 ' : '已重新套上第 ') + bagCount() + ' 朵，还剩 ' + left + ' 朵要套', 'good', 'bag');
+  } else if (firstTime){
+    toast('✓ 3 朵花各套一个纸袋 —— 外来花粉已被隔离', 'good');
+    advance(3);
+  } else {
+    toast('✓ 3 朵花全部重新套袋 —— 人工授粉完成，接下来等待结种子', 'good');
+    S.maturing = true;
+    S.matureProgress = 0;
+    advance(6);
+    startMaturation();
+  }
+}
+
+function startMaturation(){
+  if (maturityTimer) window.clearInterval(maturityTimer);
+  const started = Date.now(), duration = 6200;
+  renderAll();
+  maturityTimer = window.setInterval(function(){
+    const p = Math.min(100, ((Date.now() - started) / duration) * 100);
+    S.matureProgress = p;
+    renderMaturation();
+    if (p >= 100){
+      window.clearInterval(maturityTimer); maturityTimer = null;
+      S.maturing = false; S.matureProgress = 100;
+      renderAll();
+      toast('✓ 时间快进完成：豆荚已经成熟，可以从豆荚向下方种子盆收集种子', 'good');
+    }
+  }, 100);
+}
+
+/* 揭袋：同样一次只揭一个；3 个袋子都提走之后才允许授粉。 */
+function doDeflower(i){
+  const f = S.flowers[i];
+  if (S.step !== 4 || !f || !f.bag) return;   // 非授粉阶段静默忽略，避免误报
+  f.bag = false;
+  syncBagged();
+  renderParents(); renderCue(); renderTools(); clearDroppable(); updateGuide();
+  const left = bagCount();
+  if (left > 0) toast('第 ' + (FLOWER_N - left) + ' 个袋子已揭下，还剩 ' + left + ' 个', 'good', 'unbag');
+  else toast('3 个纸袋全部揭下 —— 现在用带粉毛笔横向划过 3 朵花授粉', 'good');
+}
+
+/* 采收豆荚：把豆荚拖进种子盆，取出这一荚的 16 粒种子。
+   3 个荚收完 = 48 粒，正好够播 16 穴 × 3 粒，数量自洽 —— 学生能自己算出来。 */
+function actHarvest(i){
+  if (S.step !== 6 || S.podTaken[i]) return;
+  const be = bloomEl(i);
+  const head = be ? be.querySelector('.bhead.podmode') : null;
+  if (head) head.classList.add('taken');
+  const pot = toolEl('seed');
+  if (pot){
+    pot.classList.add('shake');
+    window.setTimeout(function(){ pot.classList.remove('shake'); }, 480);
+  }
+  if (elHarvestPot) elHarvestPot.classList.add('shake');
+  window.setTimeout(function(){
+    if (elHarvestPot) elHarvestPot.classList.remove('shake');
+    S.podTaken[i] = true;
+    renderParents(); renderTools(); renderCue(); updateGuide();
+    const left = POD_N - podCount();
+    if (left > 0) toast('已取出第 ' + podCount() + ' 个豆荚的种子，还剩 ' + left + ' 个', 'good', 'pod');
+    else {
+      toast('✓ ' + TOTAL_PLANTS + ' 粒种子已收齐 —— 现在把它们种进十六宫格', 'good');
+      advance(7);
+    }
+  }, 400);
+}
+
+function actCollect(){
+  S.pollen = 100;
+  renderParents(); renderTools(); renderCue(); updateGuide();
+  toast('✓ 毛笔已蘸满父本花粉', 'good');
+  advance(4);
+}
+
+function actFert(i){
+  S.flowers[i].fert = true;
+  justSmeared = i;
+  renderParents(); renderTools(); renderCue(); updateGuide();
+  window.setTimeout(function(){
+    justSmeared = -1;
+    if (!stroke) renderParents();
+  }, 640);
+  const left = S.flowers.filter(function(f){ return !f.fert; }).length;
+  if (left > 0) toast('第 ' + (FLOWER_N - left) + ' 朵花授粉完成，还剩 ' + left + ' 朵', 'good', 'fert');
+  else { toast('✓ 授粉完成 —— 母本子房将发育成豆荚', 'good'); advance(5); }
+}
+
+function advance(to){
+  if (to <= S.step) return;              // 只允许向前推进，防止重复触发
+  const was = S.step;
+  S.step = Math.min(STEP_N, to);
+  // 进入"播种"那一步（第 7 步）时才生成这一轮的 48 粒基因型
+  if (was < 7 && S.step >= 7) prepareSeeds();
+  S.selectedTool = null;
+  renderAll();
+}
+
+function prepareSeeds(){
+  // 48 粒子代的基因型：正常 → 24 高 : 24 矮（1:1）；含 a 雄配子半致死 → 32 高 : 16 矮（2:1）
+  const tall = S.cond === 'normal' ? TOTAL_PLANTS / 2 : TOTAL_PLANTS * 2 / 3;
+  const pool = [];
+  for (let i = 0; i < tall; i++) pool.push('Aa');
+  for (let i = 0; i < TOTAL_PLANTS - tall; i++) pool.push('aa');
+  // 洗牌
+  for (let i = pool.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+  }
+  S.seedPool = pool;
+  S.seedIdx = 0;
+}
+
+function actSow(i){
+  const c = S.cells[i];
+  if (c.stage > 0){ toast('该穴已有植株了', 'bad'); return; }
+  const g = S.seedPool.slice(S.seedIdx * SEEDS_PER_CELL, S.seedIdx * SEEDS_PER_CELL + SEEDS_PER_CELL);
+  c.geno = g; c.stage = 1;
+  S.seedIdx++;
+  renderField(); renderTools(); renderCue(); renderStats(false); updateGuide();
+  sproutAnim(i);
+  window.setTimeout(function(){
+    if (S.cells[i].stage === 1){
+      S.cells[i].stage = 2; renderField(); renderStats(false); sproutAnim(i);
+    }
+  }, 420);
+  if (S.seedIdx === TOTAL_CELLS){
+    toast('✓ ' + TOTAL_PLANTS + ' 粒种子全部播下 —— 点击「🌱 让它们生长」', 'good');
+    advance(8);
+  }
+}
+
+/* 只为刚播种的那一格播放破土动画，避免整块地跟着重播 */
+function sproutAnim(i){
+  const cell = elField.querySelector('[data-idx="' + i + '"]');
+  if (!cell) return;
+  cell.querySelectorAll('.pl').forEach(function(p, n){
+    window.setTimeout(function(){ p.classList.add('grow'); }, n * 80);
+  });
+}
+
+function sowAll(){
+  for (let i = 0; i < TOTAL_CELLS; i++){
+    if (S.cells[i].stage === 0) actSow(i);
+  }
+}
+
+function growAll(){
+  if (S.step !== 8) return;
+  elBtnGrow.disabled = true;
+  elBtnGrow.textContent = '生长中…';
+  formHint(); 
+  let done = 0;
+  S.cells.forEach(function(c, i){
+    window.setTimeout(function(){
+      c.stage = 3;
+      renderField();
+      done++;
+      if (done === TOTAL_CELLS){
+        S.grown = true;
+        if (!S.roundRecorded){                 // 同一轮只记一次，避免重复计数
+          S.roundRecorded = true;
+          S.rounds.push({ cond: S.cond, tall: tally().tall, dwarf: tally().dwarf, n: TALLN() });
+        }
+        elBtnGrow.disabled = false;
+        elBtnGrow.textContent = '🌱 让它们生长';
+        advance(9);
+        renderStats(true); renderConcl(); renderHist(); updateGuide();
+        const t = tally();
+        if (S.cond === 'normal') toast('结果出来了：高 ' + t.tall + ' ∶ 矮 ' + t.dwarf + '，与预期 1∶1 相符 ✓', 'good');
+        else toast('⚠ 结果与预期不符！高 ' + t.tall + ' ∶ 矮 ' + t.dwarf + '，停下来想一想', 'bad');
+      }
+    }, 95 * i);
+  });
+}
+function formHint(){ /* 生长期间保持田地聚焦，收起聚光灯 */ elVeil.classList.remove('on'); elHand.className = ''; }
+function TALLN(){ const t = tally(); return t.tall + t.dwarf; }
+
+/* ==========================================================================
+   条件切换 / 重置
+   ========================================================================== */
+function switchCond(cond, force){
+  if (cond === S.cond && !force) return;
+  if (maturityTimer){ window.clearInterval(maturityTimer); maturityTimer = null; }
+  const keepRounds = S.rounds.slice();
+  S = freshState(cond);                  // 新一轮：作答、田地、步骤全部重置
+  S.rounds = keepRounds;                 // 仅保留跨轮的历史数据
+  elCond2Label.textContent = '异常条件 ❓';
+  renderAll();
+}
+
+function syncCondUI(){
+  $$('#condSeg button').forEach(function(b){
+    b.classList.toggle('on', b.dataset.cond === S.cond);
+  });
+}
+
+function resetRound(){
+  if (maturityTimer){ window.clearInterval(maturityTimer); maturityTimer = null; }
+  const keepRounds = S.rounds.slice();
+  const cond = S.cond;
+  const revealed = S.revealed;
+  S = freshState(cond);
+  S.rounds = keepRounds;
+  S.revealed = revealed;
+  S.answered = {};
+  renderAll();
+  toast('本轮已重置', 'good');
+}
+
+function renderAll(){
+  renderSteps(); renderCue(); renderPrediction(); renderParents(); renderMaturation(); renderField();
+  renderTools(); renderSort(); renderStats(false); renderConcl(); renderHist();
+  syncCondUI(); syncBodyClass();
+  elBtnGrow.textContent = '🌱 让它们生长';
+  elBtnGrow.disabled = false;
+  window.requestAnimationFrame(function(){ fitField(); updateGuide(); });
+  window.setTimeout(updateGuide, 420);
+}
+
+/* ==========================================================================
+   提示语
+   ========================================================================== */
+function toolEmoji(k){ return { knife:'🔪', bag:'🛍', brush:'🖌', seed:'🫘', pod:'🌰' }[k] || ''; }
+
+function blockedMsg(k){
+  const stepNames = { 1:'去雄', 2:'套袋', 3:'蘸取花粉', 4:'授粉', 5:'再套袋', 6:'收种子', 7:'播种', 8:'生长观察', 9:'分析结论' };
+  return '现在不需要「' + TOOL_LABEL[k] + '」—— 当前是第 ' + S.step + ' 步：' + (stepNames[S.step] || '');
+}
+
+function contextMsg(tool, t){
+  const d = t.dataset.drop;
+  const i = +t.dataset.idx;
+  if (tool === 'pod'){
+    if (S.step !== 6) return '现在还不是收种子的时候';
+    if (d !== 'seedpot') return '把豆荚拖到工具架的种子盆里，才能取出种子';
+    if (S.podTaken[i]) return '这个豆荚已经取过种了';
+  }
+  if (d === 'cell'){
+    if (S.step !== 7) return '现在还不是播种的时候';
+    if (S.cells[i].stage > 0) return '该地块已有植株了';
+  }
+  if (d === 'mflower'){
+    if (tool === 'knife'){
+      if (S.step !== 1) return '现在不需要去雄';
+      if (S.flowers[i].emas) return '这朵花的雄蕊已经切掉了';
+    }
+    if (tool === 'bag'){
+      if (S.step !== 2 && S.step !== 5) return '现在不需要套袋';
+      if (S.flowers[i].bag) return '这朵花已经套好袋了（按住袋子向上滑可以揭下）';
+    }
+    if (tool === 'brush'){
+      if (S.step !== 4) return '现在还不是授粉的时候';
+      if (S.flowers[i].bag) return '这朵花还罩着纸袋 —— 按住袋子向上滑动把袋子揭下';
+      if (S.pollen <= 0) return '毛笔上没有花粉，请先去父本蘸取';
+      if (!S.flowers[i].emas) return '这朵花还没去雄';
+      if (S.flowers[i].fert) return '这朵花已经授过粉了';
+    }
+  }
+  if (d === 'fflower'){
+    if (S.step !== 3) return '现在不需要取粉';
+    if (S.pollen > 0) return '毛笔已经蘸满花粉了';
+  }
+  return '这里不能这样做';
+}
+
+/* ==========================================================================
+   Toast / Modal
+   ========================================================================== */
+let lastToast = { msg:'', t:0 };
+let mergeToast = { key:null, el:null };
+
+/* toast(msg, kind, key)
+   key 是"同类进度"的标识（套袋 / 揭袋 / 去雄 / 授粉 / 采收）：
+   连续做同一件事时（套第 1 朵 → 第 2 朵 → 第 3 朵）**复用同一条气泡并就地更新文字**。
+   否则 3 次操作就会甩出 3 条气泡，在田地正上方叠成一片，把刚种下的苗挡住。 */
+function toast(msg, kind, key){
+  const now = Date.now();
+  if (msg === lastToast.msg && now - lastToast.t < 2600) return;
+  lastToast = { msg:msg, t:now };
+
+  const ico = kind === 'bad' ? '⚠️' : (kind === 'good' ? '✓' : 'ℹ️');
+  let d;
+
+  if (key && mergeToast.key === key && mergeToast.el && mergeToast.el.parentNode){
+    d = mergeToast.el;
+    d.className = 'toast' + (kind ? ' ' + kind : '');
+    d.querySelector('.ti').textContent = ico;
+    d.querySelector('.tt').textContent = msg;
+    if (d._t1) window.clearTimeout(d._t1);
+    if (d._t2) window.clearTimeout(d._t2);
+  } else {
+    d = document.createElement('div');
+    d.className = 'toast' + (kind ? ' ' + kind : '');
+    d.innerHTML = '<span class="ti"></span><span class="tt"></span>';
+    d.querySelector('.ti').textContent = ico;
+    d.querySelector('.tt').textContent = msg;
+    elToasts.appendChild(d);
+    mergeToast = { key: key || null, el: d };
+  }
+
+  // 最多同时 2 条：多了会叠成一大片盖住田地
+  const live = Array.prototype.filter.call(elToasts.children, function(c){ return !c.classList.contains('out'); });
+  while (live.length > 2){
+    const old = live.shift();
+    old.classList.add('out');
+    window.setTimeout(function(){ old.remove(); }, 240);
+  }
+
+  d._t1 = window.setTimeout(function(){
+    d.classList.add('out');
+    d._t2 = window.setTimeout(function(){ d.remove(); }, 240);
+  }, 2000);
+}
+
+/* ==========================================================================
+   绑定
+   ========================================================================== */
+$('#condSeg').addEventListener('click', function(e){
+  const b = e.target.closest('button[data-cond]');
+  if (!b) return;
+  const c = b.dataset.cond;
+  if (c === S.cond) return;
+  if (c === 'mystery' && S.rounds.length === 0){
+    toast('建议先完成第 1 轮（正常条件）实验，再做对比', 'bad');
+    return;
+  }
+  if (S.step < STEP_N){
+    const ok = window.confirm('本轮实验还没做完，切换条件会重新开始本轮。确定切换吗？');
+    if (!ok) return;
+  }
+  switchCond(c);
+  toast(c === 'normal'
+    ? '已切换到「正常条件」'
+    : '已切换到「异常条件」—— 本轮条件被隐藏，请通过实验找出它', 'good');
+});
+
+/* 揭袋已改为"按住纸袋向上滑"手势，此处不再绑定点击 */
+$('#btnGrow').addEventListener('click', growAll);
+$('#btnSowAll').addEventListener('click', sowAll);
+$('#btnSort').addEventListener('click', toggleSort);
+$('#btnReset').addEventListener('click', resetRound);
+$('#btnZen').addEventListener('click', function(){
+  document.body.classList.toggle('zen');
+  this.classList.toggle('on', document.body.classList.contains('zen'));
+  this.textContent = document.body.classList.contains('zen') ? '🔍 恢复' : '🔍 专注';
+  window.requestAnimationFrame(function(){ fitField(); updateGuide(); });
+});
+$('#btnHypo').addEventListener('click', function(){ $('#modal').classList.add('on'); });
+$('#modalClose').addEventListener('click', function(){ $('#modal').classList.remove('on'); S.guided = true; });
+$('#modal').addEventListener('click', function(e){ if (e.target === this){ this.classList.remove('on'); S.guided = true; } });
+
+/* 预测板：先让学生做出一个可修改的判断，再开始操作。选错不阻断流程，
+   但会留下“再想一想”的证据，避免把交互变成一道只能猜答案的门槛。 */
+elPredictionPanel.addEventListener('click', function(e){
+  const b = e.target.closest('[data-predict]');
+  if (!b) return;
+  S.prediction = b.dataset.predict;
+  S.predictionAttempts += 1;
+  renderPrediction();
+  if (S.prediction === '1:1') toast('预测已记录：测交后代应接近 1 ∶ 1。现在亲手验证它。', 'good');
+  else toast('这个预测先保留下来，完成实验后用证据检验它。', 'bad');
+});
+
+elSortWrap.addEventListener('click', function(e){
+  const b = e.target.closest('[data-sample]');
+  if (!b) return;
+  S.sampleChoice = b.dataset.sample;
+  // 只更新判断反馈，不重建分类区；重建会打断 FLIP 后的植株堆并造成空白。
+  elSortWrap.querySelectorAll('[data-sample]').forEach(function(x){ x.classList.toggle('selected', x === b); });
+  let note = elSortWrap.querySelector('.sample-feedback');
+  if (!note){ note = document.createElement('small'); note.className = 'sample-feedback'; const box = elSortWrap.querySelector('.sample-check'); if (box) box.appendChild(note); }
+  note.textContent = S.sampleChoice === 'tall' ? '判断正确：株高是形态证据。' : '再观察一次：把两株的基部对齐后再比较。';
+  toast(S.sampleChoice === 'tall' ? '判断正确：同一把尺子下，左侧植株更高。' : '把两株的基部对齐，再比较它们的高度。', S.sampleChoice === 'tall' ? 'good' : 'bad');
+});
+
+/* 引导弹窗 Tab */
+$('#gtabs').addEventListener('click', function(e){
+  const b = e.target.closest('.gtab');
+  if (!b) return;
+  const tab = b.dataset.tab;
+  $$('#gtabs .gtab').forEach(function(x){ x.classList.toggle('on', x === b); });
+  $$('.gpane').forEach(function(p){ p.classList.toggle('on', p.dataset.pane === tab); });
+});
+
+elSteps.addEventListener('click', function(e){
+  const s = e.target.closest('.stp');
+  if (!s) return;
+  const n = +s.dataset.step;
+  toast('第 ' + n + ' 步 · ' + STEP_DEFS[n - 1].n + '：' + STEP_DEFS[n - 1].sub);
+});
+
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape'){ $('#modal').classList.remove('on'); S.selectedTool = null; clearDroppable(); renderTools(); }
+});
+
+/* 视口变化时重新适配 2.5D 田地与引导层 */
+let fitTimer = 0;
+function relayout(){
+  window.clearTimeout(fitTimer);
+  fitTimer = window.setTimeout(function(){ fitField(); updateGuide(); }, 90);
+}
+window.addEventListener('resize', relayout);
+window.addEventListener('orientationchange', relayout);
+window.addEventListener('scroll', function(){ updateGuide(); }, true);
+if (window.ResizeObserver){
+  try { new ResizeObserver(function(){ fitField(); }).observe(elFieldStage); } catch(err){}
+}
+
+/* ==========================================================================
+   启动
+   ========================================================================== */
+S = freshState('normal');
+renderAll();
+/* 首屏先给"我要做什么"，学生看清了再动手；关掉后每一屏都有虚拟手指带路 */
+window.setTimeout(function(){ $('#modal').classList.add('on'); }, 320);
+/* 字体/布局稳定后再校准一次 2.5D 田地的缩放 */
+window.addEventListener('load', function(){ relayout(); });
+window.setTimeout(function(){ fitField(); updateGuide(); }, 120);
+</script>
+</body>
+</html>
