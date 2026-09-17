@@ -20,7 +20,6 @@ https://kingsleychung.github.io/MendelianIntersectionTest/
 |------|------|
 | `index.html` | 交互模拟主程序，单文件自包含，零外部依赖 |
 | `.nojekyll` | 告知 GitHub Pages 跳过 Jekyll 处理，原样发布静态文件 |
-| `docs/prd-tech-spec.md` | PRD、教学约束与技术实现说明 |
 
 ## 设备适配
 

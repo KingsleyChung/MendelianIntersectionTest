@@ -120,10 +120,9 @@ button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:n
 .mission-mark{font-size:22px;line-height:1}
 .mission-copy{min-width:0;flex:1}.mission-copy b{display:block;color:#5a4630;font-size:13px}.mission-copy span{display:block;color:#887b67;font-size:11.5px;margin-top:2px}
 .mission-link{font-size:11px;color:#8a6b39;white-space:nowrap;border-bottom:1px dashed #cdbb99;padding-bottom:2px}
-.hypothesis-strip{display:flex;align-items:stretch;gap:12px;padding:12px 14px;border:1px solid #d6e3d7;border-radius:16px;background:#f3f8f1;box-shadow:inset 0 1px rgba(255,255,255,.75)}
-.hypo-label{width:118px;display:flex;flex-direction:column;justify-content:center;flex:0 0 auto}.hypo-label b{font-size:12px;color:#365b43}.hypo-label span{font-size:11px;color:#7c8d7c;margin-top:3px}
-.hypo-flow{display:flex;align-items:center;gap:7px;min-width:0;flex:1}.hypo-node{padding:8px 10px;border-radius:10px;background:#fff;border:1px solid #dbe6dc;font-size:11.5px;color:#536558;line-height:1.35;flex:1}.hypo-node strong{color:var(--brand-d);font-family:var(--mono)}.hypo-arrow{color:#9db0a0;font-size:14px}
-.prediction-choice{display:flex;gap:6px;flex:0 0 auto}.prediction-choice button{padding:8px 10px;border-radius:10px;border:1px solid #ccdccd;background:#fff;color:#507059;font-size:11px;font-weight:700}.prediction-choice button:hover,.prediction-choice button.selected{background:#2e7d5b;color:#fff;border-color:#2e7d5b}.prediction-choice button.wrong{background:#fff4e9;color:#a36b2e;border-color:#e7c48b}
+/* ⚠️ 这里原有 .hypothesis-strip / .hypo-label / .hypo-flow / .hypo-node / .prediction-choice
+   ——「先写下你的预测」面板的整套样式，已随该面板一并移除（连同 .stage 的第 3 行网格）。
+   对应地，phaseForStep() 的阶段编号也从 2/3/4 前移为 1/2/3。 */
 .phase-kicker{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#9b8d77;margin-bottom:3px}
 .cue{border-color:#cddfcf;background:linear-gradient(105deg,#eef7ef,#fbfaf4);box-shadow:0 8px 22px rgba(60,90,60,.08)}
 .cue-t{color:#345f43}.cue-num{background:#427e59}.cue-ges{border-color:#cbdcca;background:#fffdf8}
@@ -142,9 +141,9 @@ button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:n
 .gbtn{border-radius:11px}.gbtn.soft{background:#f0f6ef;border-color:#cfe1d1;color:#416d4a}.gbtn.amber{background:#fbf0d8;border-color:#e6c98e;color:#8c6123}
 .sortwrap{background:#fbfaf4;border-color:#dfd7c8}
 .sortfoot{background:#f2f7ef!important;border-color:#d3e1d0!important;color:#4e704f!important}
-.sample-check{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;margin-bottom:10px;border-radius:12px;background:#fffdf7;border:1px solid #e3dac8;color:#665945}.sample-check b{display:block;font-size:12px}.sample-check span{display:block;font-size:11px;color:#9a8d79;margin-top:2px}.sample-check small{color:#56805e;font-size:11px}.sample-actions{display:flex;gap:6px;flex:0 0 auto}.sample-actions button{padding:7px 10px;border-radius:8px;border:1px solid #d6c9b2;background:#fff;color:#80663c;font-size:11px;font-weight:700}.sample-actions button:hover{background:#f5eddc;border-color:#caaa70}
-@media (max-width:900px){.steps::before{display:none}.steps{padding:0 10px}.hypothesis-strip{flex-wrap:wrap}.hypo-label{width:auto}.hypo-flow{width:100%;order:3}.prediction-choice{margin-left:auto}.mission-link{display:none}}
-@media (max-width:720px){.mission-strip{min-height:52px}.hypo-flow{overflow-x:auto}.hypo-node{min-width:110px}.hypo-arrow{flex:0 0 auto}.prediction-choice{width:100%}.prediction-choice button{flex:1}.side{order:3}}
+/* ⚠️ .sample-check / .sample-actions 是「先观察两株代表植株」判断组件的样式，已随组件移除。 */
+@media (max-width:900px){.steps::before{display:none}.steps{padding:0 10px}.mission-link{display:none}}
+@media (max-width:720px){.mission-strip{min-height:52px}.side{order:3}}
 
 /* v2 layout overrides */
 main{height:calc(100% - 128px)}
@@ -153,29 +152,23 @@ body.ops .stage{grid-template-rows:auto auto auto minmax(150px,1fr) auto}
 .cue{position:relative;padding-top:20px}.cue .phase-kicker{position:absolute;left:82px;top:6px}.cue .cue-num{margin-top:2px}.cue .cue-body{padding-top:3px}
 @media (max-width:980px){main{height:calc(100% - 128px)}}
 @media (max-width:720px){
-  main,.stage,.mission-strip,.cue,.hypothesis-strip,.parents,.pcard,.fieldwrap,.tools{min-width:0;width:100%;max-width:100%}
-  .hypothesis-strip{overflow:hidden}
-  .hypo-flow{min-width:0}
+  main,.stage,.mission-strip,.cue,.parents,.pcard,.fieldwrap,.tools{min-width:0;width:100%;max-width:100%}
   .cue .phase-kicker{left:72px}
 }
 
-/* v2.1 修正：预测是“任务提示”，不能成为主舞台的大面板；田地在操作阶段也必须可见。 */
+/* v2.1 修正：操作台高度要克制，把空间让给田地；田地在操作阶段也必须可见。 */
 #spotveil{display:none!important}
 .mission-strip{min-height:44px;height:44px;padding:6px 12px;border-radius:12px}
 .mission-mark{font-size:17px}.mission-copy b{font-size:12px}.mission-copy span{display:none}.mission-link{font-size:10px}
-.hypothesis-strip{height:58px;min-height:58px;padding:6px 10px;gap:8px;border-radius:12px}
-.hypo-label{width:104px}.hypo-label b{font-size:11px}.hypo-label span{font-size:10px}
-.hypo-flow{gap:4px}.hypo-node{padding:5px 7px;font-size:10px;line-height:1.2}.hypo-arrow{font-size:12px}
-.prediction-choice{gap:4px}.prediction-choice button{padding:6px 8px;font-size:10px}
-.stage{grid-template-rows:44px 92px 58px minmax(190px,auto) minmax(190px,1fr) auto;gap:8px}
-body.ops .stage{grid-template-rows:44px 92px 58px minmax(190px,auto) minmax(190px,1fr) auto}
+.stage{grid-template-rows:44px 92px minmax(190px,auto) minmax(190px,1fr) auto;gap:8px}
+body.ops .stage{grid-template-rows:44px 92px minmax(190px,auto) minmax(190px,1fr) auto}
 body.ops .bloom{--sh:88px;--bh:40px;padding:14px 4px 5px}
 .fieldwrap{background:linear-gradient(145deg,#fcfbf5,#f3f0e6);border-color:#d8d0be;box-shadow:0 10px 24px rgba(79,61,34,.07)}
 .fieldstage{min-height:190px}
 .pcard{padding:8px 10px}.pcard-hd{margin-bottom:4px}.pbody{min-height:0}
 .cue{padding:16px 12px 8px;box-shadow:0 7px 18px rgba(51,90,58,.10)}.cue .phase-kicker{left:68px;top:5px}.cue-num{width:38px;height:38px;font-size:17px}.cue-t{font-size:14px}.cue-s{font-size:11.5px}
 @media (max-width:720px){
-  .mission-strip{height:42px;min-height:42px}.hypothesis-strip{height:auto;min-height:58px}.hypo-flow{max-width:100%;overflow-x:auto}.stage,body.ops .stage{grid-template-rows:42px auto auto minmax(190px,auto) minmax(170px,1fr) auto}
+  .mission-strip{height:42px;min-height:42px}.stage,body.ops .stage{grid-template-rows:42px auto minmax(190px,auto) minmax(170px,1fr) auto}
   .fieldstage{min-height:170px}.cue{padding-top:18px}
 }
 
@@ -925,18 +918,66 @@ body.grown .gbtn{padding:8px 18px;font-size:13px}
 #spotveil{display:none!important}
 .mission-strip{min-height:44px;height:44px;padding:6px 12px;border-radius:12px}
 .mission-mark{font-size:17px}.mission-copy b{font-size:12px}.mission-copy span{display:none}.mission-link{font-size:10px}
-.hypothesis-strip{height:58px;min-height:58px;padding:6px 10px;gap:8px;border-radius:12px;overflow:hidden}
-.hypo-label{width:104px}.hypo-label b{font-size:11px}.hypo-label span{font-size:10px}.hypo-flow{gap:4px;min-width:0}.hypo-node{padding:5px 7px;font-size:10px;line-height:1.2}.hypo-arrow{font-size:12px}
-.prediction-choice{gap:4px}.prediction-choice button{padding:6px 8px;font-size:10px}
 main{height:calc(100% - 128px)}
-.stage,body.ops .stage{grid-template-rows:44px 92px 58px minmax(170px,auto) auto minmax(240px,1fr);gap:8px}
+/* ★ 权威网格定义（本块在文件最后，覆盖前面所有历史版本）★
+   行序：① mission-strip ② cue ③ parents ④ tools ⑤ fieldwrap —— 共 5 行。
+   删掉"先写下你的预测"面板后，原有的第 3 行（58px）已移除，释放的高度由末尾的
+   1fr 行（田地）自然吸收，田地因此变大、--fs 自动上调，投影也更清晰。
+   ⚠️ 操作台那一行的下限**不写在 minmax() 里**，而是放在 .parents 自己的 min-height 上：
+   第 7–9 步 .blooms 已被隐藏（body.grown），两张亲本卡只剩标题和芯片，不到 60px 高；
+   若行下限还钉死 170px 就等于白留一块空白。改成 auto + 可撤销的 min-height 后，
+   这段高度会自动流向田地 —— 实测 1440×900 第 9 步 --fs 0.704 → 1.04。 */
+.stage,body.ops .stage{grid-template-rows:44px 92px auto auto minmax(240px,1fr);gap:8px}
+.parents{min-height:170px}
+body.grown .parents{min-height:0}
 body.ops .bloom{--sh:82px;--bh:38px;padding:13px 4px 5px}
 body.ops .fieldwrap{opacity:1}.fieldwrap{background:linear-gradient(145deg,#fcfbf5,#f3f0e6);border-color:#d8d0be;box-shadow:0 10px 24px rgba(79,61,34,.07)}.fieldstage{min-height:240px}
 .field-lock{background:rgba(255,253,247,.92);border-color:#cbbd9e;color:#75633f}
 .pcard{padding:8px 10px}.pcard-hd{margin-bottom:4px}.pbody{min-height:0}
 .cue{padding:16px 12px 8px;box-shadow:0 7px 18px rgba(51,90,58,.10)}.cue .phase-kicker{left:68px;top:5px}.cue-num{width:38px;height:38px;font-size:17px}.cue-t{font-size:14px}.cue-s{font-size:11.5px}
-@media (max-width:980px){main{height:auto}.stage,body.ops .stage{grid-template-rows:auto auto auto minmax(170px,auto) auto minmax(220px,1fr)}}
-@media (max-width:720px){main,.stage,.mission-strip,.cue,.hypothesis-strip,.parents,.pcard,.fieldwrap,.tools{min-width:0;width:100%;max-width:100%}.mission-strip{height:42px;min-height:42px}.hypothesis-strip{height:auto;min-height:58px}.hypo-flow{max-width:100%;overflow-x:auto}.stage,body.ops .stage{grid-template-rows:42px auto auto minmax(190px,auto) auto minmax(170px,1fr)}.fieldstage{min-height:170px}.cue{padding-top:18px}}
+@media (max-width:980px){main{height:auto}.stage,body.ops .stage{grid-template-rows:auto auto auto auto minmax(220px,1fr)}}
+@media (max-width:720px){main,.stage,.mission-strip,.cue,.parents,.pcard,.fieldwrap,.tools{min-width:0;width:100%;max-width:100%}.mission-strip{height:42px;min-height:42px}.parents{min-height:190px}.stage,body.ops .stage{grid-template-rows:42px auto auto auto minmax(170px,1fr)}.fieldstage{min-height:170px}.cue{padding-top:18px}}
+
+/* ★ 矮屏档 · A 级（高度 ≤880px，如 1366×768 笔记本）★
+   实测：5 行的最小高度合计在 768p 下超出舞台，末尾的田地会被切到视口外
+   —— body 是 overflow:hidden，切掉就再也看不到。所以这里整体降一档。
+
+   ⚠️⚠️ 但**光把 .parents 的 min-height 调小是错的**。
+   亲本卡的硬需求 = 上内边距 + .pcard-hd + 下间距 + 花朵 + .pflags + 上内边距：
+     9 + 27 + 5 + 104 + (26+6) + 9 = 186px
+   卡片一旦被压到低于这个值，就会以两种方式同时出丑：
+     ① .pbody 的 flex:1 被压缩 → 只剩 80px；
+     ② .blooms 的 align-content:end 于是把花朵**向上顶出卡片**，
+        直接盖住"♀ 母本 / ♂ 父本"标题（实测 1280×720 花朵顶在卡片顶以上 7px，
+        标题被花朵那层不透明底色完全遮住，肉眼看不到）。
+   所以必须"一边压缩部件、一边把下限设在压缩后仍然装得下的值"，两者缺一不可。
+   ⚠️ 下面几条必须**同时覆盖基础态与 body.ops 放大态**：body.ops 的
+   .pcard padding=13/15、.bloom --sh=82、.pflags margin-top=10 特异性更高，
+   只写基础态会被它们盖掉，等于没压。 */
+@media (min-width:981px) and (max-height:880px){
+  .stage,body.ops .stage{grid-template-rows:44px 92px auto auto minmax(150px,1fr)}
+  .pcard,body.ops .pcard{padding:9px 12px}
+  .pcard-hd,body.ops .pcard-hd{margin-bottom:5px}
+  .bloom,body.ops .bloom{--sh:66px;--bh:32px;padding:10px 4px 4px}
+  .pflags,body.ops .pflags{margin-top:6px}
+  .fieldstage{min-height:96px}
+  .parents{min-height:190px}
+}
+/* ★ 矮屏档 · B 级（高度 ≤740px，如 1280×720 投影仪）★
+   720p 舞台只有 568px，A 级的合计 590px 仍然放不下（田地会被挤到只剩 128px，
+   而 .fieldwrap 的内容本身就要 150px，于是又溢出）。这一级把顶栏、指令卡、
+   工具架也一起收紧 —— 省下的 60px 全部让给田地。
+   注意：B 级压缩后单卡最小高降到 184，但为了不跟着 A 级再改一个数字
+   （改漏一处就会出现上面那个"花朵盖标题"），这里沿用同一档 190。
+   压缩后合计 = 40 + 72 + 190 + 68 + 140 + 32 = 542 ≤ 568，田地实得约 170px。 */
+@media (min-width:981px) and (max-height:740px){
+  .stage,body.ops .stage{grid-template-rows:40px 72px auto auto minmax(140px,1fr)}
+  .mission-strip{height:40px;min-height:40px;padding:4px 12px}
+  .cue,body.ops .cue{padding:14px 12px 6px}
+  .tools,body.ops .tools{padding:6px 12px}
+  .pflags,body.ops .pflags{margin-top:4px}
+  .fieldstage{min-height:76px}
+}
 
 /* 手机端只压缩信息，不改变平板 / PC 的实验台结构 */
 @media (max-width:720px){
@@ -945,7 +986,6 @@ body.ops .fieldwrap{opacity:1}.fieldwrap{background:linear-gradient(145deg,#fcfb
   .steps{height:52px;padding:8px 10px;scroll-snap-type:x proximity}.stp{scroll-snap-align:start}.stp .num{width:26px;height:26px}.stp .tx{font-size:11px}.stp .line{width:16px;margin:0 5px}
   .mission-strip{margin-bottom:0}.mission-copy b{font-size:11px}.mission-link{display:none}
   .cue{padding:15px 10px 7px}.cue .phase-kicker{left:59px;font-size:9px}.cue-num{width:34px;height:34px;font-size:15px}.cue-title{font-size:13px}.cue-s{font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .hypothesis-strip{padding:7px 9px}.hypo-label{width:100%;display:flex;flex-direction:row;align-items:baseline;justify-content:space-between}.hypo-flow{order:2;width:100%;padding-bottom:1px}.hypo-node{min-width:108px}.prediction-choice{order:3;width:100%}
   .parents{gap:8px}.pcard{padding:8px}.pcard-hd{font-size:12px}.pcard[data-side="father"] .pbody{min-height:102px}.pcard[data-side="father"] .blooms{display:flex;justify-content:flex-start}.pcard[data-side="father"] .bloom{width:118px;flex:0 0 118px}
   .pcard[data-side="father"]{display:none}body[data-step="3"] .pcard[data-side="mother"]{display:none}body[data-step="3"] .pcard[data-side="father"]{display:flex}
   .field-hd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;padding:8px 9px}.field-hd h2{font-size:12px;white-space:nowrap}.field-hd .sub{font-size:10px;white-space:nowrap;text-align:right}.field-hd .legend{grid-column:1/-1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:9px}.fieldstage{min-height:205px}.fieldwrap{border-radius:14px}
@@ -972,6 +1012,15 @@ body.maturing .time-lapse{display:flex}.time-clock{width:34px;height:34px;border
 body.harvesting .harvest-pot{display:flex}.pot-arrow{font-size:10px;font-weight:800;color:#7a5b2d;animation:potArrow 1.25s ease-in-out infinite}@keyframes potArrow{50%{transform:translateY(4px)}}
 .pot-bowl{position:relative;width:72px;height:24px;margin-top:3px;border-radius:8px 8px 30px 30px;background:linear-gradient(180deg,#f2d7a0,#c99d58);border:2px solid #a97c3d;box-shadow:inset 0 4px 5px rgba(255,255,255,.45),0 5px 10px rgba(87,57,20,.2)}.pot-bowl::before{content:'';position:absolute;left:-4px;right:-4px;top:-5px;height:10px;border-radius:50%;background:#f8e6c0;border:2px solid #a97c3d}.pot-bowl i{position:absolute;inset:-1px 4px auto;height:5px;border-radius:50%;background:#8c6538;z-index:1;opacity:.35}
 .harvest-pot small{font-size:9.5px;color:#8b7554;margin-top:2px}.harvest-pot.droppable,.harvest-pot.hit{filter:drop-shadow(0 0 8px rgba(46,125,91,.55));transform:translateX(-50%) scale(1.05)}
+/* 采收反馈：豆荚投进盆里时盆身蹦一下。
+   ⚠️ 关键帧里必须带上 translateX(-50%) —— .harvest-pot 靠它居中，
+   若沿用工具架那套 toolShake（内部写的是 transform:none）会整体右移半个身位。 */
+.harvest-pot.shake{animation:potShake .44s cubic-bezier(.3,.02,.2,1)}
+@keyframes potShake{
+  0%,100%{transform:translateX(-50%)}
+  28%{transform:translateX(-50%) translateY(-6px) rotate(-3deg)}
+  62%{transform:translateX(-50%) translateY(3px) rotate(2deg)}
+}
 body.harvesting .tool[data-tool="seed"]{opacity:.28;pointer-events:none}
 .process-overlay{display:none;position:fixed;inset:0;z-index:1200;background:rgba(20,31,25,.72);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:24px}
 body.maturing .process-overlay,body.growing .process-overlay{display:flex;animation:processFade .25s ease-out both}@keyframes processFade{from{opacity:0}to{opacity:1}}
@@ -1033,12 +1082,12 @@ body.maturing .time-lapse{display:none!important}
 
     <div class="mission-strip" aria-label="研究任务">
       <div class="mission-mark">📓</div>
-      <div class="mission-copy"><b>今天的研究任务：用测交检验孟德尔的分离假说</b><span>先做出预测，再亲手完成一次人工异花传粉，最后用后代证据判断假说是否得到支持。</span></div>
+      <div class="mission-copy"><b>今天的研究任务：用测交检验孟德尔的分离假说</b><span>亲手完成一次人工异花传粉，再用后代的表现和数量，判断假说是否得到支持。</span></div>
       <div class="mission-link">实验记录 · 可随时重置</div>
     </div>
 
     <div class="cue" id="cue">
-      <div class="phase-kicker" id="phaseKicker">阶段 1 · 提出预测</div>
+      <div class="phase-kicker" id="phaseKicker">阶段 1 · 完成测交</div>
       <div class="cue-num" id="cueNum">1<i>／8</i></div>
       <div class="cue-body">
         <div class="cue-t" id="cueTitle">去雄</div>
@@ -1048,18 +1097,6 @@ body.maturing .time-lapse{display:none!important}
         <span class="gi" id="cueGesIco">✂️</span>
         <span class="gt" id="cueGesTx">横向滑动</span>
         <span class="garr"></span>
-      </div>
-    </div>
-
-    <div class="hypothesis-strip" id="predictionPanel">
-      <div class="hypo-label"><b>先写下你的预测</b><span>不要急着看答案</span></div>
-      <div class="hypo-flow">
-        <div class="hypo-node"><strong>F₁ Aa</strong><br/>形成两类配子</div><div class="hypo-arrow">→</div>
-        <div class="hypo-node"><strong>aa</strong><br/>只提供 a 配子</div><div class="hypo-arrow">→</div>
-        <div class="hypo-node"><strong>后代？</strong><br/>高茎 ∶ 矮茎</div>
-      </div>
-      <div class="prediction-choice" role="group" aria-label="预测后代比例">
-        <button data-predict="1:1">1 ∶ 1</button><button data-predict="3:1">3 ∶ 1</button><button data-predict="全高">全是高茎</button>
       </div>
     </div>
 
@@ -1261,8 +1298,8 @@ const STEP_DEFS = [
     title:'去雄', sub:'用解剖刀横向划过每一朵花蕾，切掉它的全部雄蕊（豌豆闭花受粉，必须在花蕾期操作）' },
   { k:'bag',   n:'套袋',     gesture:'drag',   gle:'🛍', gtx:'逐朵拖拽',
     title:'套袋', sub:'把纸袋依次拖到花朵上 —— 3 朵花要分别套 3 次，隔离外来花粉' },
-  { k:'pollen',n:'取粉',     gesture:'drag',   gle:'🖌', gtx:'拖拽',
-    title:'蘸取花粉', sub:'把毛笔拖到父本成熟的花药上，蘸取花粉' },
+  { k:'pollen',n:'取粉',     gesture:'sweepX', gle:'🖌', gtx:'横向划过',
+    title:'蘸取花粉', sub:'在父本成熟的花药上横向划过，用毛笔把花粉刷下来（这朵花粉量足，不用拖工具）' },
   { k:'fert',  n:'授粉',     gesture:'lift',   gle:'⬆️', gtx:'上滑 / 横划',
     title:'授粉', sub:'先把 3 个纸袋逐一向上滑开，再用带粉毛笔划过 3 朵花——一朵也不能漏' },
   { k:'rebag', n:'再套袋',   gesture:'drag',   gle:'🛍', gtx:'逐朵拖拽',
@@ -1320,9 +1357,6 @@ function freshState(cond){
     roundRecorded: false,          // 本轮数据是否已记入历史
     rounds: S ? S.rounds : [],     // 跨轮保留
     answered: {},                  // 记录作答
-    prediction: null,              // 学生先写下的测交预测
-    predictionAttempts: 0,
-    sampleChoice: null,
     selectedTool: null,
     guided: false                  // 是否已看过首屏引导
   };
@@ -1352,7 +1386,7 @@ const elSteps = $('#steps'), elField = $('#field'), elBlooms = $('#blooms'),
       elCueSub = $('#cueSub'), elCueGes = $('#cueGes'), elCueGesIco = $('#cueGesIco'),
       elCueGesTx = $('#cueGesTx'), elFieldStage = $('#fieldStage'), elFieldZoom = $('#fieldZoom'),
       elVeil = $('#spotveil'), elHand = $('#handHint'), elFieldWrap = $('#fieldwrap'),
-      elPredictionPanel = $('#predictionPanel'), elPhaseKicker = $('#phaseKicker'),
+      elPhaseKicker = $('#phaseKicker'),
       elTimeLapse = $('#timeLapse'), elTimeBar = $('#timeBar'), elTimeText = $('#timeText'),
       elTimeCount = $('#timeCount'), elHarvestPot = $('#harvestPot'), elHarvestCount = $('#harvestCount'),
       elProcessOverlay = $('#processOverlay'), elProcessTitle = $('#processTitle'), elProcessSub = $('#processSub'),
@@ -1521,29 +1555,12 @@ function renderSteps(){
   }).join('');
 }
 
+/* 阶段编号跟着实际流程走：去掉"先写下你的预测"这一前置环节后，
+   原来的 2/3/4 阶段整体前移一位 —— 否则界面上会直接从「阶段 2」开始，永远看不到阶段 1。 */
 function phaseForStep(step){
-  if (step <= 0) return {n:'1', title:'提出预测'};
-  if (step <= 5) return {n:'2', title:'完成测交'};
-  if (step <= 8) return {n:'3', title:'培育子代'};
-  return {n:'4', title:'分析证据'};
-}
-
-function renderPrediction(){
-  if (!elPredictionPanel) return;
-  const buttons = elPredictionPanel.querySelectorAll('[data-predict]');
-  buttons.forEach(function(b){
-    b.classList.toggle('selected', S.prediction === b.dataset.predict);
-    b.classList.toggle('wrong', S.prediction && S.prediction !== '1:1' && S.prediction === b.dataset.predict);
-  });
-  if (S.prediction === '1:1'){
-    elPredictionPanel.classList.add('confirmed');
-    const note = elPredictionPanel.querySelector('.hypo-label span');
-    if (note) note.textContent = '预测已记录 ✓';
-  } else {
-    elPredictionPanel.classList.remove('confirmed');
-    const note = elPredictionPanel.querySelector('.hypo-label span');
-    if (note) note.textContent = S.prediction ? '再想一想' : '不要急着看答案';
-  }
+  if (step <= 5) return {n:'1', title:'完成测交'};
+  if (step <= 8) return {n:'2', title:'培育子代'};
+  return {n:'3', title:'分析证据'};
 }
 
 function renderMaturation(){
@@ -1816,11 +1833,7 @@ function renderSort(){
   };
 
   elSortWrap.innerHTML =
-    '<div class="sample-check"><div><b>先观察两株代表植株</b><span>不看颜色，只比较从同一条基准线长出的高度。</span></div>'
-      + '<div class="sample-actions"><button data-sample="tall">左边更高</button><button data-sample="dwarf">右边更高</button></div>'
-      + (S.sampleChoice ? '<small>' + (S.sampleChoice === 'tall' ? '判断正确：株高是形态证据。' : '再观察一次：把两株的基部对齐后再比较。') + '</small>' : '')
-    + '</div>'
-    + '<div class="sortcols">'
+    '<div class="sortcols">'
       + colHTML(tall, '高茎', '🌿', 'tall')
       + colHTML(dwarf, '矮茎', '🌱', 'dwarf')
     + '</div>'
@@ -2224,7 +2237,7 @@ function renderConcl(){
     } else {
       html += answerFeedback('qA', S.answered.qA, 'b',
         'F₁ 高茎（Aa）形成配子时，成对的遗传因子彼此分离，产生 A、a 两种配子且数量相等（1∶1）。隐性纯合子（aa）只产生 a 一种配子，不会掩盖 F₁ 配子的表达，所以后代表现为高茎∶矮茎 = 1∶1。');
-      html += '<button class="gbtn nextbtn" id="btnNextRound">切换到「异常条件」，进行第 2 轮实验 →</button>';
+      html += '<button class="gbtn nextbtn" id="btnNextRound">进行第二轮实验 →</button>';
     }
   } else {
     if (S.answered.qB !== 'b'){
@@ -2426,8 +2439,10 @@ function startPodDrag(e, i){
   document.addEventListener('pointermove', onPointerMove);
   document.addEventListener('pointerup', onPointerUp);
   document.addEventListener('pointercancel', onPointerUp);
-  // 唯一的合法落点是种子盆，直接把它高亮出来
-  const pot = toolEl('seed');
+  /* 第 6 步的落点是操作台中央那个大号「空种子盆」(#harvestPot)：
+     工具架上那个种子盆此刻被 body.harvesting 置灰并禁用了 —— 高亮必须打在
+     真正能接住豆荚的元素上，否则学生看不到任何落点提示。 */
+  const pot = elHarvestPot || toolEl('seed');
   if (pot) pot.classList.add('droppable');
 }
 
@@ -2451,7 +2466,7 @@ function toolHint(tool){
   if (tool === 'knife') return '用解剖刀横向划过花蕾（也可把它拖到花上），切掉雄蕊';
   if (tool === 'bag')   return '把纸袋拖到某一朵花上 —— 3 朵花要分别套 3 次';
   if (tool === 'brush') return S.step === 3
-    ? '请把毛笔拖到父本的花药上（也可横向划过花药）'
+    ? '请在父本的花药上横向划过，把花粉刷下来（不用拖毛笔）'
     : '请把毛笔拖到母本已去雄的花朵上（也可横向划过）';
   if (tool === 'seed')  return '请把种子拖到空穴里';
   if (tool === 'pod')   return '把豆荚拖到工具架的种子盆里，取出种子';
@@ -2713,11 +2728,8 @@ function actHarvest(i){
   const be = bloomEl(i);
   const head = be ? be.querySelector('.bhead.podmode') : null;
   if (head) head.classList.add('taken');
-  const pot = toolEl('seed');
-  if (pot){
-    pot.classList.add('shake');
-    window.setTimeout(function(){ pot.classList.remove('shake'); }, 480);
-  }
+  /* 采收反馈打在真正的落点（大号空种子盆）上：工具架里的种子盆此刻被
+     body.harvesting 置灰禁用了，在它身上抖动等于没有反馈。 */
   if (elHarvestPot) elHarvestPot.classList.add('shake');
   window.setTimeout(function(){
     if (elHarvestPot) elHarvestPot.classList.remove('shake');
@@ -2881,7 +2893,7 @@ function resetRound(){
 }
 
 function renderAll(){
-  renderSteps(); renderCue(); renderPrediction(); renderParents(); renderMaturation(); renderProcess(); renderField();
+  renderSteps(); renderCue(); renderParents(); renderMaturation(); renderProcess(); renderField();
   renderTools(); renderSort(); renderStats(false); renderConcl(); renderHist();
   syncCondUI(); syncBodyClass();
   elBtnGrow.textContent = '🌱 让它们生长';
@@ -2897,6 +2909,9 @@ function toolEmoji(k){ return { knife:'🔪', bag:'🛍', brush:'🖌', seed:'�
 
 function blockedMsg(k){
   const stepNames = { 1:'去雄', 2:'套袋', 3:'蘸取花粉', 4:'授粉', 5:'再套袋', 6:'收种子', 7:'播种', 8:'生长观察', 9:'分析结论' };
+  /* 第 3 步的取粉是"直接在花药上横向划过"，毛笔不需要拖（STEP_TOOLS[3] 刻意留空）。
+     这里单独说明，否则学生会看到"现在不需要毛笔"而不知道该怎么做。 */
+  if (k === 'brush' && S.step === 3) return '取粉不用拖毛笔 —— 直接在父本的花药上横向划过就行';
   return '现在不需要「' + TOOL_LABEL[k] + '」—— 当前是第 ' + S.step + ' 步：' + (stepNames[S.step] || '');
 }
 
@@ -3021,30 +3036,6 @@ $('#btnZen').addEventListener('click', function(){
 $('#btnHypo').addEventListener('click', function(){ $('#modal').classList.add('on'); });
 $('#modalClose').addEventListener('click', function(){ $('#modal').classList.remove('on'); S.guided = true; });
 $('#modal').addEventListener('click', function(e){ if (e.target === this){ this.classList.remove('on'); S.guided = true; } });
-
-/* 预测板：先让学生做出一个可修改的判断，再开始操作。选错不阻断流程，
-   但会留下“再想一想”的证据，避免把交互变成一道只能猜答案的门槛。 */
-elPredictionPanel.addEventListener('click', function(e){
-  const b = e.target.closest('[data-predict]');
-  if (!b) return;
-  S.prediction = b.dataset.predict;
-  S.predictionAttempts += 1;
-  renderPrediction();
-  if (S.prediction === '1:1') toast('预测已记录：测交后代应接近 1 ∶ 1。现在亲手验证它。', 'good');
-  else toast('这个预测先保留下来，完成实验后用证据检验它。', 'bad');
-});
-
-elSortWrap.addEventListener('click', function(e){
-  const b = e.target.closest('[data-sample]');
-  if (!b) return;
-  S.sampleChoice = b.dataset.sample;
-  // 只更新判断反馈，不重建分类区；重建会打断 FLIP 后的植株堆并造成空白。
-  elSortWrap.querySelectorAll('[data-sample]').forEach(function(x){ x.classList.toggle('selected', x === b); });
-  let note = elSortWrap.querySelector('.sample-feedback');
-  if (!note){ note = document.createElement('small'); note.className = 'sample-feedback'; const box = elSortWrap.querySelector('.sample-check'); if (box) box.appendChild(note); }
-  note.textContent = S.sampleChoice === 'tall' ? '判断正确：株高是形态证据。' : '再观察一次：把两株的基部对齐后再比较。';
-  toast(S.sampleChoice === 'tall' ? '判断正确：同一把尺子下，左侧植株更高。' : '把两株的基部对齐，再比较它们的高度。', S.sampleChoice === 'tall' ? 'good' : 'bad');
-});
 
 /* 引导弹窗 Tab */
 $('#gtabs').addEventListener('click', function(e){
