@@ -28,16 +28,46 @@
   --sh1:0 1px 2px rgba(16,32,24,.06);
   --sh2:0 4px 14px rgba(16,32,24,.08);
   --sh3:0 14px 36px rgba(16,32,24,.14);
-  --font:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC","Source Han Sans SC",system-ui,-apple-system,"Segoe UI",sans-serif;
+  /* "HarmonyOS Sans SC" 是华为平板（擎云 C5e 等）的系统字体，排在 PingFang 之后：
+     华为设备没有 PingFang → 落到自带字体（字形与字重最贴合系统）；
+     macOS/iOS 有 PingFang → 维持原样，不受影响。 */
+  --font:"PingFang SC","HarmonyOS Sans SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC","Source Han Sans SC",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
+html{overscroll-behavior:none}
 body{
   margin:0;font-family:var(--font);background:var(--bg);color:var(--t1);
   font-size:14px;line-height:1.55;overflow:hidden;
   -webkit-font-smoothing:antialiased;
+  /* ★★ 触屏 / 平板加固（目标机：华为擎云 C5e，2000×1200，Android+HarmonyOS）★★
+
+     ① display:flex 列 + main{flex:1 1 auto}
+        取代过去写死的「100% 减去 128px」：那个 128 把
+        「顶栏 56 + 步骤条 72」焊进公式，任何一档压缩改了顶栏/步骤条高度却忘了
+        同步 calc，就会整体错位或多出一条幽灵空白。改成 flex 后 main 自动吃掉
+        剩余高度，压缩档只改组件自身高度即可。
+
+     ② touch-action:manipulation
+        允许滚动与捏合，但**禁掉双击缩放** —— 演示时一旦双击放大，
+        整个固定屏布局就废了（正文会跑到视口外面，且 user-scalable=no 已禁捏合，
+        只剩双击这一条误触路径）。
+
+     ③ user-select:none + -webkit-touch-callout:none
+        触屏长按会弹出系统「选择/复制」菜单，**并把 pointer 流打断**
+        （后续 pointermove 不再派发），表现为拖到一半工具掉了。
+        本页没有需要选中的文本，全局禁掉最稳。
+
+     ④ overscroll-behavior:none
+        禁掉下拉刷新 / 边缘回弹，避免误触刷新把课堂进度清空。 */
+  display:flex;flex-direction:column;
+  overscroll-behavior:none;
+  touch-action:manipulation;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
 }
+/* 指令卡、结论卡允许选中，方便老师课上标重点（其余一律不可选） */
+.side .card,.cue-s{user-select:text;-webkit-user-select:text}
 button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .ico{font-style:normal}
 
@@ -146,11 +176,11 @@ button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:n
 @media (max-width:720px){.mission-strip{min-height:52px}.side{order:3}}
 
 /* v2 layout overrides */
-main{height:calc(100% - 128px)}
+main{flex:1 1 auto;min-height:0;height:auto}
 .stage{grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:9px}
 body.ops .stage{grid-template-rows:auto auto auto minmax(150px,1fr) auto}
 .cue{position:relative;padding-top:20px}.cue .phase-kicker{position:absolute;left:82px;top:6px}.cue .cue-num{margin-top:2px}.cue .cue-body{padding-top:3px}
-@media (max-width:980px){main{height:calc(100% - 128px)}}
+@media (max-width:980px){main{flex:1 1 auto;min-height:0;height:auto}}
 @media (max-width:720px){
   main,.stage,.mission-strip,.cue,.parents,.pcard,.fieldwrap,.tools{min-width:0;width:100%;max-width:100%}
   .cue .phase-kicker{left:72px}
@@ -179,7 +209,7 @@ main{
   /* 右栏 340 → 380px：三张卡片（性状统计 / 分析与结论 / 本轮实验记录）在 340px 下
      统计表的"株数"列和结论区的长句都偏挤，wrap 出来的断行很碎。加宽 40px 后
      正文几乎不再折行，和田地之间也不至于失衡。1180px 以下的一档同步加到 320px。 */
-  height:calc(100% - 118px);display:grid;grid-template-columns:1fr 380px;gap:12px;padding:12px;
+  flex:1 1 auto;min-height:0;height:auto;display:grid;grid-template-columns:1fr 380px;gap:12px;padding:12px;
 }
 body.zen main{grid-template-columns:1fr}
 body.zen .side{display:none}
@@ -965,7 +995,10 @@ body.grown .gbtn{padding:8px 18px;font-size:13px}
 #spotveil{display:none!important}
 .mission-strip{min-height:44px;height:44px;padding:6px 12px;border-radius:12px}
 .mission-mark{font-size:17px}.mission-copy b{font-size:12px}.mission-copy span{display:none}.mission-link{font-size:10px}
-main{height:calc(100% - 128px)}
+/* main 的高度改由 flex 决定（body 是 flex 列，main flex:1 1 auto）——
+   过去这里是「100% 减去 128px」，把顶栏 56 + 步骤条 72 焊死，
+   下面的矮屏压缩档一改顶栏高度就会与公式脱节。 */
+main{flex:1 1 auto;min-height:0;height:auto}
 /* ★ 权威网格定义（本块在文件最后，覆盖前面所有历史版本）★
    行序：① mission-strip ② cue ③ parents ④ tools ⑤ fieldwrap —— 共 5 行。
    删掉"先写下你的预测"面板后，原有的第 3 行（58px）已移除，释放的高度由末尾的
@@ -1002,7 +1035,7 @@ body.ops .fieldwrap{opacity:1}.fieldwrap{background:linear-gradient(145deg,#fcfb
    .pcard padding=13/15、.bloom --sh=82、.pflags margin-top=10 特异性更高，
    只写基础态会被它们盖掉，等于没压。 */
 @media (min-width:981px) and (max-height:880px){
-  .stage,body.ops .stage{grid-template-rows:44px 92px auto auto minmax(150px,1fr)}
+  .stage,body.ops .stage{grid-template-rows:44px 92px auto auto minmax(138px,1fr)}
   .pcard,body.ops .pcard{padding:9px 12px}
   .pcard-hd,body.ops .pcard-hd{margin-bottom:5px}
   .bloom,body.ops .bloom{--sh:66px;--bh:32px;padding:10px 4px 4px}
@@ -1018,7 +1051,7 @@ body.ops .fieldwrap{opacity:1}.fieldwrap{background:linear-gradient(145deg,#fcfb
    （改漏一处就会出现上面那个"花朵盖标题"），这里沿用同一档 190。
    压缩后合计 = 40 + 72 + 190 + 68 + 140 + 32 = 542 ≤ 568，田地实得约 170px。 */
 @media (min-width:981px) and (max-height:740px){
-  .stage,body.ops .stage{grid-template-rows:40px 72px auto auto minmax(140px,1fr)}
+  .stage,body.ops .stage{grid-template-rows:40px 72px auto auto minmax(100px,1fr)}
   .mission-strip{height:40px;min-height:40px;padding:4px 12px}
   .cue,body.ops .cue{padding:14px 12px 6px}
   .tools,body.ops .tools{padding:6px 12px}
@@ -1026,9 +1059,137 @@ body.ops .fieldwrap{opacity:1}.fieldwrap{background:linear-gradient(145deg,#fcfb
   .fieldstage{min-height:76px}
 }
 
+/* ★★★ 矮屏档 · C 级（高度 ≤660px）★★★  目标机：华为擎云 C5e 横屏
+   ------------------------------------------------------------------
+   为什么必须再加一级：B 级（≤740px）之后**再无档位**，而实测
+     1143×590 内容栈 544 / 舞台 438 —— 溢出 106px
+     1000×510 内容栈 544 / 舞台 358 —— 溢出 186px
+   body 是 overflow:hidden，溢出部分**永久看不见**（不是"挤一点"，是整行消失）。
+
+   ⚠️ 这一级和 A/B 级的关键区别：**同时压缩顶栏与步骤条**。
+   过去 main 的高度写死 calc(100% - 128px)，改顶栏高度只会错位；
+   现在 body 是 flex 列，顶栏/步骤条矮下来，main 自动把高度让给舞台，
+   每改 1px 顶栏就是实打实的 1px 给田地。
+   本档合计腾出 56-46 + 72-50 = 32px。
+
+   ⚠️ .parents 的 min-height 必须 ≥ 压缩后亲本卡的硬需求
+     （padding 6/6 + .pcard-hd 21 + .bloom 81 + .pflags 21 ≈ 135），
+   定 142 留 7px 余量。定小了 .blooms 的 align-content:end 会把花朵
+   **向上顶出卡片盖住标题** —— 这个坑 A 级踩过，别再踩。 */
+@media (min-width:981px) and (max-height:660px){
+  .topbar{height:46px;padding:0 10px;gap:10px}
+  .steps{height:50px;padding:0 12px}
+  .stp .num{width:24px;height:24px;font-size:12px}
+  .stp .tx{font-size:10.5px}
+  .stage,body.ops .stage{grid-template-rows:32px 58px auto auto minmax(64px,1fr)}
+  .mission-strip{height:32px;min-height:32px;padding:2px 10px}
+  .mission-mark{font-size:14px}.mission-copy b{font-size:11px}
+  .cue,body.ops .cue{padding:10px 10px 4px}
+  .cue .phase-kicker{left:54px;top:3px;font-size:9px}
+  .cue-num{width:30px;height:30px;font-size:14px}
+  .cue-t{font-size:12.5px}.cue-s{font-size:10.5px}
+  .pcard,body.ops .pcard{padding:6px 9px}
+  .pcard-hd,body.ops .pcard-hd{margin-bottom:3px;font-size:11.5px}
+  .bloom,body.ops .bloom{--sh:50px;--bh:22px;padding:6px 3px 3px}
+  .pflags,body.ops .pflags{margin-top:3px}
+  .parents{min-height:142px}
+  .tools,body.ops .tools{padding:4px 10px}
+  .tool,body.ops .tool{min-height:40px;padding:5px 11px}
+  .fieldstage{min-height:64px}
+}
+
+/* ★ 矮屏档 · D 级（高度 ≤500px）★
+   到了这一档，物理分辨率 2000×1200 的平板要 dpr>2.4 或浏览器被放大很多倍才会命中，
+   属于兜底：宁可字小，也绝不让 body 的 overflow:hidden 把内容吃掉。
+   ⚠️ 顶栏只能压到 46px：下面「触屏命中区」把 .seg 撑到了 44px，
+      再矮就会让条件切换按钮顶出顶栏。省高度改从步骤条拿（50 → 42）。 */
+@media (min-width:981px) and (max-height:500px){
+  .topbar{height:46px;padding:0 8px;gap:8px}
+  .steps{height:42px;padding:0 10px}
+  .stp .num{width:20px;height:20px;font-size:11px}
+  .stp .tx{font-size:10px}.stp .line{width:12px;margin:0 3px}
+  .stage,body.ops .stage{grid-template-rows:28px 50px auto auto minmax(32px,1fr)}
+  .mission-strip{height:28px;min-height:28px;padding:1px 8px}
+  .mission-mark{font-size:12px}.mission-copy b{font-size:10.5px}
+  .cue,body.ops .cue{padding:8px 9px 3px}
+  .cue .phase-kicker{left:50px;top:2px;font-size:8.5px}
+  .cue-num{width:26px;height:26px;font-size:12.5px}
+  .cue-t{font-size:11.5px}.cue-s{font-size:10px}
+  .pcard,body.ops .pcard{padding:5px 8px}
+  .pcard-hd,body.ops .pcard-hd{margin-bottom:2px;font-size:11px}
+  .bloom,body.ops .bloom{--sh:42px;--bh:19px;padding:5px 3px 3px}
+  .pflags,body.ops .pflags{margin-top:2px}
+  .parents{min-height:126px}
+  .tools,body.ops .tools{padding:3px 8px}
+  .tool,body.ops .tool{min-height:36px;padding:4px 9px}
+  .fieldstage{min-height:32px}
+}
+
+/* ============================================================================
+   ★★ 触屏加固（华为擎云 C5e 等平板 / 一切 pointer:coarse 设备）★★
+   ----------------------------------------------------------------------------
+   实测基线（dpr1.5 横向）：顶栏按钮 37px、条件切换 33px、步骤点 30px
+   —— 全部低于 40px 的可用阈值。平板是「手指 + 大屏 + 课堂演示」，
+   误触一次就要重来，所以粗指针下一律抬到 38px+（步骤条 / 顶栏本身够高，装得下）。
+
+   ⚠️ 不要抬到 44px：.seg 的实高 = padding 3×2 + 按钮高 + 边框 2，
+      44px 按钮会把 .seg 撑到 52px，直接顶穿 C 档 46px 的顶栏。
+      这里用「.seg padding 收到 2px + 按钮 38px」→ .seg 实高 44px，正好卡住。
+   ============================================================================ */
+@media (pointer:coarse){
+  .ghost{padding:8px 14px;min-height:38px;display:inline-flex;align-items:center;justify-content:center}
+  .seg{padding:2px}
+  .seg button{padding:8px 15px;min-height:38px}
+  .stp{min-height:38px}
+  .gtab{padding:8px 12px;min-height:38px}
+  /* 田地是画笔（strokeMove）的作用面：不给 touch-action:none，
+     Android 会把拖动判定成滚动手势并派发 pointercancel，笔画直接断在起点。 */
+  .fieldstage{touch-action:none}
+}
+
+/* 触屏没有真正的 hover：:hover 会在点过一次后**一直粘住**，
+   而 .tool 的 hover 效果（描边+底色+上移 1px）与 .tool.sel 的选中态视觉接近，
+   拖动过的工具会看起来像"还被选中"，影响课堂判断。粗指针下复位。 */
+@media (hover:none){
+  .ghost:hover{background:var(--surface);border-color:var(--border);color:var(--t2)}
+  .ghost.on:hover{background:var(--brand-l);border-color:#BEDCCB;color:var(--brand-d)}
+  .tool:hover:not(.lock){border-color:var(--border);background:transparent;transform:none;box-shadow:none}
+  .gbtn:hover:not(:disabled){background:var(--brand);transform:none;box-shadow:none}
+  .gbtn.amber:hover:not(:disabled){background:#E89A18}
+  .gbtn.soft:hover:not(:disabled){background:var(--surface)}
+  .opt:hover:not(.locked){border-color:var(--border);background:transparent}
+  .gtab:hover{color:var(--t2)}
+}
+
+/* ============================================================================
+   ★ 竖屏提示（仅触屏 + 竖屏）★
+   实验台是 5:3 横屏版式：田地 / 母本父本 / 工具架必须同屏，
+   竖屏下 .stage 退化成手机堆叠布局，"同屏对照"这个教学效果就没了。
+   用 pointer:coarse 挡住桌面端"把窗口拉成竖长条"的误判。
+   ============================================================================ */
+.rot-hint{
+  display:none;position:fixed;inset:0;z-index:1400;
+  background:radial-gradient(120% 90% at 50% 0%,#2B4636,#16241C 70%);
+  color:#fff;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;text-align:center;padding:28px 24px;
+}
+.rot-ico{font-size:54px;line-height:1;animation:rotWobble 2s ease-in-out infinite}
+@keyframes rotWobble{0%,42%,100%{transform:rotate(0)}58%,92%{transform:rotate(-90deg)}}
+.rot-t{font-size:20px;font-weight:700;letter-spacing:.5px}
+.rot-s{font-size:13px;line-height:1.95;color:#BFD2C6;max-width:560px}
+@media (orientation:portrait) and (pointer:coarse){
+  .rot-hint{display:flex}
+}
+.rot-hint.skip{display:none!important}
+
+/* 平板上的全屏按钮：横屏顶部状态栏+地址栏会吃掉 90~120px，
+   而本页 body 是 overflow:hidden、永不滚动，地址栏也就永远不自动隐藏 ——
+   全屏是唯一能把这段高度抢回来的手段。 */
+#btnFull.on{background:var(--brand-l);border-color:#BEDCCB;color:var(--brand-d);font-weight:600}
+
 /* 手机端只压缩信息，不改变平板 / PC 的实验台结构 */
 @media (max-width:720px){
-  .topbar{position:relative;padding:8px 10px;gap:7px}.brand{gap:7px}.brand .logo{width:32px;height:32px}.brand h1{font-size:14px}.top-actions{margin-left:auto;gap:5px}.top-actions .ghost{padding:6px 8px;font-size:11px}.top-actions .ghost:first-child{font-size:0}.top-actions .ghost:first-child::before{content:'🧭';font-size:14px}.top-actions .ghost:nth-child(2){font-size:0}.top-actions .ghost:nth-child(2)::before{content:'⌕';font-size:17px}.top-actions .ghost:nth-child(3){font-size:0}.top-actions .ghost:nth-child(3)::before{content:'↺';font-size:16px}
+  .topbar{position:relative;padding:8px 10px;gap:7px}.brand{gap:7px}.brand .logo{width:32px;height:32px}.brand h1{font-size:14px}.top-actions{margin-left:auto;gap:5px}.top-actions .ghost{padding:6px 8px;font-size:11px}.top-actions .ghost:first-child{font-size:0}.top-actions .ghost:first-child::before{content:'🧭';font-size:14px}.top-actions .ghost:nth-child(2){font-size:0}.top-actions .ghost:nth-child(2)::before{content:'⌕';font-size:17px}.top-actions .ghost:nth-child(3){font-size:0}.top-actions .ghost:nth-child(3)::before{content:'↺';font-size:16px}.top-actions .ghost:nth-child(4){font-size:0}.top-actions .ghost:nth-child(4)::before{content:'⛶';font-size:16px}
   .cond{order:3;width:100%;margin:0;justify-content:center}.cond-label{font-size:10px}.seg button{padding:5px 10px;font-size:11px}
   .steps{height:52px;padding:8px 10px;scroll-snap-type:x proximity}.stp{scroll-snap-align:start}.stp .num{width:26px;height:26px}.stp .tx{font-size:11px}.stp .line{width:16px;margin:0 5px}
   .mission-strip{margin-bottom:0}.mission-copy b{font-size:11px}.mission-link{display:none}
@@ -1052,7 +1213,10 @@ body.ops .fieldwrap{opacity:1}.fieldwrap{background:linear-gradient(145deg,#fcfb
 }
 .cover.liftable{will-change:transform,opacity;transition:transform .16s ease-out,opacity .16s ease-out}
 .parents{position:relative}
-.time-lapse{display:none;position:absolute;left:14px;right:14px;bottom:10px;z-index:12;align-items:center;gap:11px;padding:10px 12px;border-radius:14px;background:rgba(34,61,43,.94);color:#fff;box-shadow:0 12px 28px rgba(23,45,31,.28);backdrop-filter:blur(8px)}
+/* 去掉 backdrop-filter:blur(8px)：底色本身已经 94% 不透明，那层模糊在视觉上
+   几乎读不出来，却逼着 Adreno 610（骁龙 680）在时间流逝动画期间**每帧**重算一次
+   整块背景采样 —— 这是本页最容易掉帧的一处。 */
+.time-lapse{display:none;position:absolute;left:14px;right:14px;bottom:10px;z-index:12;align-items:center;gap:11px;padding:10px 12px;border-radius:14px;background:rgba(34,61,43,.94);color:#fff;box-shadow:0 12px 28px rgba(23,45,31,.28)}
 body.maturing .time-lapse{display:flex}.time-clock{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.12);font-size:22px;animation:clockSpin 2.4s linear infinite}@keyframes clockSpin{to{transform:rotate(360deg)}}
 .time-copy{flex:1;min-width:0}.time-copy b{display:block;font-size:12px}.time-copy span{display:block;font-size:10.5px;color:rgba(255,255,255,.72);margin:1px 0 5px}.time-copy i{display:block;height:5px;border-radius:9px;background:rgba(255,255,255,.14);overflow:hidden}.time-copy i em{display:block;height:100%;width:0;background:linear-gradient(90deg,#a8d98f,#f2c76f);border-radius:inherit;transition:width .12s linear}.time-lapse>strong{font-family:var(--mono);font-size:12px;white-space:nowrap;color:#f4d48d}
 .harvest-pot{display:none;position:absolute;left:50%;bottom:4px;transform:translateX(-50%);z-index:13;width:126px;height:67px;align-items:center;justify-content:flex-end;flex-direction:column;cursor:pointer;touch-action:none}
@@ -1069,7 +1233,11 @@ body.harvesting .harvest-pot{display:flex}.pot-arrow{font-size:10px;font-weight:
   62%{transform:translateX(-50%) translateY(3px) rotate(2deg)}
 }
 body.harvesting .tool[data-tool="seed"]{opacity:.28;pointer-events:none}
-.process-overlay{display:none;position:fixed;inset:0;z-index:1200;background:rgba(20,31,25,.72);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:24px}
+/* backdrop-filter:blur(5px) → 提高不透明度替代。
+   这个覆盖层是**满屏**的，而且出现的时机正是"时间流逝"动画播放期间，
+   全屏高斯模糊在 Adreno 610 上是最贵的一项；把不透明度从 .72 提到 .82
+   换取同样的"聚焦到卡片"的观感，代价几乎为零。 */
+.process-overlay{display:none;position:fixed;inset:0;z-index:1200;background:rgba(20,31,25,.82);align-items:center;justify-content:center;padding:24px}
 body.maturing .process-overlay,body.growing .process-overlay{display:flex;animation:processFade .25s ease-out both}@keyframes processFade{from{opacity:0}to{opacity:1}}
 .process-card{width:min(360px,92vw);padding:28px 28px 24px;border:1px solid rgba(255,255,255,.2);border-radius:24px;background:linear-gradient(145deg,#294638,#172d23);color:#fff;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.32)}
 .process-clock{position:relative;width:116px;height:116px;margin:0 auto 18px;border-radius:50%;background:#f5edda;border:7px solid #d8c69b;box-shadow:inset 0 0 0 5px #fffaf0,0 8px 22px rgba(0,0,0,.22);animation:clockFloat 2.4s ease-in-out infinite}@keyframes clockFloat{50%{transform:translateY(-4px) rotate(2deg)}}
@@ -1117,6 +1285,7 @@ body.maturing .time-lapse{display:none!important}
     <button class="ghost" id="btnHypo">🧭 操作指引</button>
     <button class="ghost" id="btnZen">🔍 专注</button>
     <button class="ghost" id="btnReset">↺ 重置本轮</button>
+    <button class="ghost" id="btnFull">⛶ 全屏</button>
   </div>
 </header>
 
@@ -1249,6 +1418,16 @@ body.maturing .time-lapse{display:none!important}
 <div id="toasts"></div>
 <div id="spotveil"></div>
 <div id="handHint">👆</div>
+
+<!-- 竖屏提示：只在「触屏 + 竖屏」时出现。
+     实验台是按 5:3 横屏排的（田地 / 母本父本 / 工具架要同屏），
+     竖屏下 .stage 会退化成堆叠布局，学生看不到"同屏对照"这个关键效果。 -->
+<div class="rot-hint" id="rotHint">
+  <div class="rot-ico">📱</div>
+  <div class="rot-t">请把平板横过来</div>
+  <div class="rot-s">这个实验台是按横屏比例排版的：只有横屏时，田地、母本父本、工具架才能同屏显示，学生才能看到"授粉 → 结荚 → 播种 → 统计"的完整因果链。旋转后本提示会自动消失。</div>
+  <button class="ghost" id="rotSkip">仍然竖屏查看</button>
+</div>
 <div class="process-overlay" id="processOverlay" aria-live="polite" aria-hidden="true">
   <div class="process-card">
     <div class="process-clock" aria-hidden="true"><i class="clock-face"></i><b class="clock-hand hour"></b><b class="clock-hand minute"></b><em></em></div>
@@ -3259,6 +3438,64 @@ document.addEventListener('keydown', function(e){
   if (e.key === 'Escape'){ $('#modal').classList.remove('on'); S.selectedTool = null; clearDroppable(); renderTools(); }
 });
 
+/* ==========================================================================
+   ★ 平板适配：全屏 / 竖屏提示 / 长按屏蔽
+   ========================================================================== */
+
+/* ---- 全屏 ----
+   横屏平板上，系统状态栏 + 浏览器地址栏会吃掉 90~120px。
+   本页 body 是 overflow:hidden、永不滚动，地址栏因此**永远不会自动隐藏**，
+   等于这段高度是净损失。全屏是唯一能把它抢回来的手段。
+   例：1333×700（有 UI）→ 1333×800（全屏），田地行 144 → 207px，+44%。
+   不支持的浏览器直接隐藏按钮，不留一个点了没反应的死按钮。 */
+(function initFullscreen(){
+  const btn = $('#btnFull');
+  if (!btn) return;
+  const root = document.documentElement;
+  const req = root.requestFullscreen || root.webkitRequestFullscreen;
+  const exit = document.exitFullscreen || document.webkitExitFullscreen;
+  if (!req){ btn.style.display = 'none'; return; }
+  const active = function(){
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  };
+  btn.addEventListener('click', function(){
+    if (active()){ try { exit.call(document); } catch(err){} }
+    else { try { req.call(root); } catch(err){} }
+  });
+  ['fullscreenchange','webkitfullscreenchange'].forEach(function(ev){
+    document.addEventListener(ev, function(){
+      const on = !!active();
+      btn.classList.toggle('on', on);
+      btn.textContent = on ? '⛶ 退出全屏' : '⛶ 全屏';
+      /* 进出全屏会改变视口尺寸，必须重新适配田地缩放与分类格列数 */
+      relayout();
+    });
+  });
+})();
+
+/* ---- 竖屏提示 ----
+   只在「触屏 + 竖屏」出现（CSS 里用 orientation + pointer:coarse 双重限定，
+   避免桌面端把窗口拖成竖长条时误触发）。老师点"仍然竖屏查看"后本次不再打扰。 */
+(function initRotateHint(){
+  const hint = $('#rotHint'), skip = $('#rotSkip');
+  if (!hint) return;
+  if (skip) skip.addEventListener('click', function(){ hint.classList.add('skip'); });
+})();
+
+/* ---- 长按屏蔽 ----
+   触屏长按会弹出系统菜单，并把 pointer 流打断（后续 pointermove 不再派发），
+   表现为"拖到一半工具掉了"。CSS 的 user-select:none 已挡大部分，
+   这里再兜一层；只在粗指针设备生效，桌面端右键菜单保持可用。 */
+(function initContextMenuGuard(){
+  let coarse = false;
+  try { coarse = window.matchMedia('(pointer:coarse)').matches; } catch(err){}
+  if (!coarse) return;
+  document.addEventListener('contextmenu', function(e){
+    if (e.target.closest('input,textarea,[contenteditable="true"]')) return;
+    e.preventDefault();
+  });
+})();
+
 /* 视口变化时重新适配 2.5D 田地与引导层 */
 let fitTimer = 0;
 function relayout(){
@@ -3273,6 +3510,66 @@ window.addEventListener('scroll', function(){ updateGuide(); }, true);
 if (window.ResizeObserver){
   try { new ResizeObserver(function(){ fitField(); layoutSortGrid(); }).observe(elFieldStage); } catch(err){}
 }
+
+/* ==========================================================================
+   ★ 真机自检（地址后加 ?diag=1）★
+   为什么需要它：浏览器 CSS 视口 = 物理分辨率 ÷ devicePixelRatio，
+   而平板的 dpr 由系统 densityDpi 决定，**规格书上查不到**
+   （擎云 C5e 物理 2000×1200，但 dpr 可能是 1.5 / 1.5625 / 1.75 / 2.0，
+   对应 CSS 视口 1333×800 / 1280×768 / 1143×686 / 1000×600，差了整整一档压缩级别）。
+   这个覆盖层把真机的确切数字直接印出来，用来确认"到底命中了哪一档"。
+   正常使用时完全不参与（只有带 ?diag=1 才创建）。
+   ========================================================================== */
+(function initDiag(){
+  if (!/[?&]diag=1/.test(location.search)) return;
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;inset:0;z-index:2000;background:#0C1712;color:#D6F2E2;'
+    + 'font:13px/1.9 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;'
+    + 'padding:22px;overflow:auto;white-space:pre-wrap;-webkit-user-select:text;user-select:text';
+  document.body.appendChild(box);
+  function m(q){ try { return window.matchMedia(q).matches ? '✓ 命中' : '·'; } catch(e){ return '?'; } }
+  function H(sel){ const el = document.querySelector(sel); return el ? Math.round(el.getBoundingClientRect().height) : 0; }
+  function W(sel){ const el = document.querySelector(sel); return el ? Math.round(el.getBoundingClientRect().width) : 0; }
+  function paint(){
+    const vv = window.visualViewport;
+    const fs = document.fullscreenElement || document.webkitFullscreenElement;
+    box.textContent = [
+      '孟德尔测交实验 · 真机自检（截图发我即可）',
+      '',
+      '物理屏 screen          ' + screen.width + ' × ' + screen.height,
+      'devicePixelRatio       ' + window.devicePixelRatio,
+      'CSS 视口 innerW×H      ' + window.innerWidth + ' × ' + window.innerHeight,
+      'documentElement        ' + document.documentElement.clientWidth + ' × ' + document.documentElement.clientHeight,
+      vv ? 'visualViewport         ' + Math.round(vv.width) + ' × ' + Math.round(vv.height) + '   scale=' + vv.scale.toFixed(2) : 'visualViewport         —',
+      '方向                   ' + (m('(orientation:portrait)').indexOf('✓') === 0 ? '竖屏' : '横屏'),
+      '粗指针 pointer:coarse  ' + m('(pointer:coarse)'),
+      '全屏中                 ' + (fs ? '✓ 是' : '· 否'),
+      '',
+      '—— 命中了哪一档矮屏媒体查询 ——',
+      '　A 级  ≤880px 高   ' + m('(min-width:981px) and (max-height:880px)'),
+      '　B 级  ≤740px 高   ' + m('(min-width:981px) and (max-height:740px)'),
+      '　C 级  ≤660px 高   ' + m('(min-width:981px) and (max-height:660px)'),
+      '　D 级  ≤500px 高   ' + m('(min-width:981px) and (max-height:500px)'),
+      '　窄屏堆叠 ≤980px 宽 ' + m('(max-width:980px)'),
+      '',
+      '—— 当前实际渲染 ——',
+      '　顶栏 / 步骤条高       ' + H('.topbar') + ' / ' + H('.steps'),
+      '　舞台高                 ' + H('.stage'),
+      '　田地行高               ' + H('.fieldwrap'),
+      '　田地 stage             ' + H('.fieldstage'),
+      '　主列宽 / 侧栏宽        ' + W('.stage') + ' / ' + W('.side'),
+      '',
+      'UA ' + navigator.userAgent,
+      '',
+      '（旋转设备 / 进出全屏后这里会自动刷新）'
+    ].join('\n');
+  }
+  paint();
+  window.addEventListener('resize', paint);
+  window.addEventListener('orientationchange', paint);
+  document.addEventListener('fullscreenchange', function(){ setTimeout(paint, 150); });
+  document.addEventListener('webkitfullscreenchange', function(){ setTimeout(paint, 150); });
+})();
 
 /* ==========================================================================
    启动
