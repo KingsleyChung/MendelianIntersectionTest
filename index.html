@@ -176,7 +176,10 @@ body.ops .bloom{--sh:88px;--bh:40px;padding:14px 4px 5px}
    主区
    ============================================================ */
 main{
-  height:calc(100% - 118px);display:grid;grid-template-columns:1fr 340px;gap:12px;padding:12px;
+  /* 右栏 340 → 380px：三张卡片（性状统计 / 分析与结论 / 本轮实验记录）在 340px 下
+     统计表的"株数"列和结论区的长句都偏挤，wrap 出来的断行很碎。加宽 40px 后
+     正文几乎不再折行，和田地之间也不至于失衡。1180px 以下的一档同步加到 320px。 */
+  height:calc(100% - 118px);display:grid;grid-template-columns:1fr 380px;gap:12px;padding:12px;
 }
 body.zen main{grid-template-columns:1fr}
 body.zen .side{display:none}
@@ -553,10 +556,20 @@ body.sorting .fieldzoom{opacity:0;pointer-events:none}
 .sortcol-hd .nm{font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:6px;color:var(--t1)}
 .sortcol-hd .n{font-size:11.5px;font-weight:700;color:var(--t3);line-height:1;letter-spacing:.3px}
 .sortcol-hd .n small{font-size:10.5px;font-weight:700;color:var(--t3);margin-left:2px}
-/* 8 列 × 3 行 = 24 株恰好摆满，高矮放在同一行尺度下直接可比 */
+/* 8 列 × 3 行 = 24 株恰好摆满，高矮放在同一行尺度下直接可比。
+   ⚠️ 列数与格高由 layoutSortGrid() 动态写入 --scols / --scell，原因见该函数注释：
+   豌豆 SVG 的 viewBox 是 40×84（细高型），格子一旦接近正方，
+   preserveAspectRatio="meet" 就会按高度贴合、宽度只用掉 47.6% —— 也就是
+   "格子越扁、豌豆越小"。固定 8 列在 1920×720 这类超宽屏上只能吃到格宽的 25.9%。
+   --scell 用固定 px（而不是 1fr）是为了让**两堆格子高度一致**：
+   高茎 3 行、矮茎 2 行时若各自 1fr，格高会差一倍，矮茎就被"放大"了，
+   违背"同一把尺子"的教学前提。 */
 .sortgrid{
-  display:grid;grid-template-columns:repeat(8,1fr);grid-auto-rows:1fr;gap:4px 2px;
-  align-content:stretch;flex:1 1 auto;min-height:0;overflow:hidden;
+  display:grid;
+  grid-template-columns:repeat(var(--scols,8),minmax(0,1fr));
+  grid-auto-rows:var(--scell,1fr);
+  gap:4px 2px;
+  align-content:start;flex:1 1 auto;min-height:0;overflow:hidden;
 }
 .ps{position:relative;min-width:0;min-height:0;opacity:0}
 .ps svg{width:100%;height:100%;display:block;overflow:visible}
@@ -854,16 +867,22 @@ body.dragging .pcard{transition:.15s}
 /* ------- 第 6–8 步：实验台收窄，把高度全让给田地 -------
    播种 / 生长 / 看结果这三个阶段，人眼盯的是 48 株子代的分布，
    操作台的使命已经结束 → 亲本卡压成一条"亲本速览"，指令卡和工具架同步瘦身。
-   腾出的 ~160px 全部给田地：--fs 从 0.81 涨到 ~1.16，苗和地块都明显变大。 */
+   腾出的高度全部给田地：--fs 明显变大，苗和地块同步放大。
+   ⚠️ 亲本卡这一条的下限可以直接压到 44px：横排之后卡片里只剩
+   ".pcard-hd（♀/♂ 标题 + 基因型芯片）" 和 ".pflags（进度芯片）"两件小东西，
+   本身高不到 24px，加上下内边距 8px 也只有 32px —— 54px 的下限是在白留空。
+   ⚠️ 但不能再往下压：低于 40px 时 .pflag 的 10.5px 文字会顶到卡片圆角上，
+   而且矮屏（≤740px 高）下这一行还被 A/B 级压缩档二次收紧，需要留出余量。 */
 body.grown .parents{gap:10px}
 body.grown .pcard{
-  flex-direction:row;align-items:center;gap:14px;padding:6px 14px;min-height:54px;
+  flex-direction:row;align-items:center;gap:14px;padding:4px 14px;min-height:44px;
 }
 body.grown .pcard-hd{margin-bottom:0;flex:0 0 auto;gap:8px}
 body.grown .pbody{min-height:0;flex:1 1 auto;align-items:center;gap:10px}
 /* 第 7 步起操作台使命结束：花枝整体收起，亲本卡只留一行状态芯片 */
 body.grown .blooms{display:none}
 body.grown .pflags{margin-top:0;flex:0 0 auto}
+body.grown .pflag{font-size:10.5px;padding:2px 9px}
 body.grown .cue{padding:7px 14px;gap:11px}
 body.grown .cue-num{width:32px;height:32px;font-size:15px;border-radius:10px}
 body.grown .cue-num i{display:none}
@@ -883,8 +902,17 @@ body.grown .gbtn{padding:8px 18px;font-size:13px}
 /* ============================================================
    响应式
    ============================================================ */
+/* 大屏档：1760px 以上右栏加到 440px。
+   这类屏幕上田地早已**被高度卡住**（--fs 由 ch/H 决定，宽度再多也放不大），
+   主区多出来的宽度全是死白；把右栏加宽反而是更均衡的分配，
+   结论卡的长句也不必再折行。 */
+@media (min-width:1760px){
+  main{grid-template-columns:1fr 440px}
+}
 @media (max-width:1180px){
-  main{grid-template-columns:1fr 300px}
+  /* 这一档同步加宽（300 → 320）：主区此时已经偏窄，右栏再给 380 会让田地吃亏，
+     所以只小幅跟一档，保住"侧栏不再挤"的观感又不与田地争空间。 */
+  main{grid-template-columns:1fr 320px}
   .brand p{display:none}
   body.ops .bloom{--sh:100px;--bh:45px;padding:19px 5px 6px}
 }
@@ -1749,7 +1777,14 @@ function fitField(){
   const dia = gw * Math.SQRT2;                                     // 菱形对角线
   const W = dia + 24;                                              // 视觉宽
   const H = dia * ISO_COS + 34;                                    // 视觉高（含顶端植株抬头）
-  const fs = Math.max(0.22, Math.min(1.3, Math.min(cw / W, ch / H)));
+  /* fs 取 min(宽比, 高比) —— 这个值本身就等于"刚好装满容器"的缩放。
+     上限曾经写死 1.3，本意是防止大屏上田地过分放大；但实测它才是
+     "大屏上土地区域显小"的主因：2560×1440 第 8 步容器 2158×945，
+     算出来该给 2.235，被 1.3 砍掉后田地只占了容器高度的 56.5%，
+     横向更只占 42.2% —— 一个四六不靠的尺寸，四周全是死白。
+     这里把上限放宽到 2.0，让"应该多大就多大"。下限 0.22 保留：
+     矮屏（1280×720 的操作态）算出来只有 0.252，再小就看不清格子了。 */
+  const fs = Math.max(0.22, Math.min(2.0, Math.min(cw / W, ch / H)));
   elFieldZoom.style.setProperty('--fs', fs.toFixed(3));
 }
 
@@ -1798,6 +1833,83 @@ function harvestFieldRects(){
   return map;
 }
 
+/* 分类区列数自适应 —— 决定"同一把尺子"能画多大
+   ────────────────────────────────────────────────
+   分类区的豌豆是 viewBox="0 0 40 84" 的细高型（宽∶高 ≈ 1∶2.1），
+   而 .sortgrid 是"列数 × 由株数推导的行数"。两者一旦错配就白白浪费面积：
+     · 格子接近正方（高/宽 ≈ 1）→ SVG 按高度贴合，宽度只用掉 47.6%
+     · 格子更扁（高/宽 < 1）→ 更糟：1920×720 上只用到格宽的 25.9%
+   所以列数必须**跟着容器形状走**，写死 8 列只在 1440×900 附近恰好合适。
+   容器越扁 → 列数越多 → 格子越窄越高 → 豌豆越大。
+
+   评分直接用 SVG 的真实缩放因子 sc = min(格宽/40, 格高/84)，
+   它正比于豌豆的最终像素尺寸，取最大者即"豌豆最大"。
+
+   ⚠️ 两堆必须共用同一个列数：高矮要放在同一尺度下比较，
+   列数不同 → 格宽不同 → 基准就变了。
+   ⚠️ 优先选能**整除株数**的列数（否则最后一行缺角很难看）；
+   实在没有整除项时才退让，此时按"最大行数"算格高，
+   两堆格子仍然同高 —— 这也顺带修掉了原实现的一个隐患：
+   原来 grid-auto-rows:1fr + align-content:stretch 会让每堆各自均分自己的高度，
+   高茎 3 行、矮茎 2 行时格高相差一倍，矮茎等于被偷偷放大了。 */
+function layoutSortGrid(){
+  if (!elSortWrap) return;
+  const wrap = elSortWrap.querySelector('.sortcols');
+  if (!wrap) return;
+  const grids = wrap.querySelectorAll('.sortgrid');
+  if (!grids.length) return;
+
+  /* 手机端（≤720px）在 CSS 里已把分类区改成"上下两堆 + 固定 6 列 + 撑高到 650px 滚动"，
+     那套规则更合理（可以溢出到视口外滚动，不必硬挤在一屏里），交还给 CSS。 */
+  if (window.innerWidth <= 720){
+    Array.prototype.forEach.call(grids, function(g){
+      g.style.removeProperty('--scols'); g.style.removeProperty('--scell');
+    });
+    return;
+  }
+
+  /* 测量必须**绕开 transform**：.sortwrap 有一条 scale(.975) → none 的过渡，
+     getBoundingClientRect 在过渡期间读到的是插值尺寸，会把结果带偏。
+     offsetWidth/offsetHeight 是布局尺寸，不受 transform 影响。 */
+  const col = wrap.querySelector('.sortcol');
+  const hd = col && col.querySelector('.sortcol-hd');
+  if (!col || !hd) return;
+  const cs = getComputedStyle(col), hcs = getComputedStyle(hd);
+  const availW = col.offsetWidth
+    - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+    - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth);
+  const availH = col.offsetHeight
+    - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)
+    - parseFloat(cs.borderTopWidth) - parseFloat(cs.borderBottomWidth)
+    - hd.offsetHeight - (parseFloat(hcs.marginBottom) || 0);
+  if (availW < 40 || availH < 40) return;
+
+  const counts = [];
+  Array.prototype.forEach.call(grids, function(g){ if (g.children.length) counts.push(g.children.length); });
+  if (!counts.length) return;
+  const nmax = Math.max.apply(null, counts);
+
+  const GX = 2, GY = 4;                        // 与 .sortgrid 的 gap:4px 2px 对齐
+  let best = null;
+  for (let c = 4; c <= Math.min(nmax, 24); c++){
+    const rows = Math.max.apply(null, counts.map(function(n){ return Math.ceil(n / c); }));
+    if (rows > 8) continue;                    // 行数再多就细成一条线了
+    const cw = (availW - GX * (c - 1)) / c;
+    const ch = (availH - GY * (rows - 1)) / rows;
+    if (cw < 10 || ch < 10) continue;
+    const sc = Math.min(cw / 40, ch / 84);
+    const exact = counts.every(function(n){ return n % c === 0; });
+    const score = sc * (exact ? 1 : 0.72);     // 不整除：扣分但不禁止
+    if (!best || score > best.score + 1e-6) best = { c: c, score: score, ch: ch };
+  }
+  if (!best) return;
+
+  Array.prototype.forEach.call(grids, function(g){
+    g.style.setProperty('--scols', best.c);
+    g.style.setProperty('--scell', best.ch.toFixed(1) + 'px');
+  });
+}
+
 function renderSort(){
   const open = S.sortOpen;
   document.body.classList.toggle('sorting', open);
@@ -1844,6 +1956,11 @@ function renderSort(){
       + '<span class="sep"></span>'
       + '<span class="it ratio">比例 <b>' + simplify(tall.length, dwarf.length) + '</b></span>'
     + '</div>';
+
+  /* 生成 HTML 后**同步**定列数，不能推到 rAF：
+     toggleSort() 紧接着就调用 flyFromField()，它要读 .ps 的最终 rect 当飞行终点。
+     这里读 offsetWidth/offsetHeight 会触发一次同步 reflow，开销可忽略（只在开启分类时跑）。 */
+  layoutSortGrid();
 }
 
 /* 点击「分类展示」：
@@ -3061,13 +3178,15 @@ document.addEventListener('keydown', function(e){
 let fitTimer = 0;
 function relayout(){
   window.clearTimeout(fitTimer);
-  fitTimer = window.setTimeout(function(){ fitField(); updateGuide(); }, 90);
+  /* 分类区的列数取决于容器的宽高比，所以视口一变就得重算。
+     放在 fitField() 之后：先让田地定好缩放，再按最终布局排分类格。 */
+  fitTimer = window.setTimeout(function(){ fitField(); layoutSortGrid(); updateGuide(); }, 90);
 }
 window.addEventListener('resize', relayout);
 window.addEventListener('orientationchange', relayout);
 window.addEventListener('scroll', function(){ updateGuide(); }, true);
 if (window.ResizeObserver){
-  try { new ResizeObserver(function(){ fitField(); }).observe(elFieldStage); } catch(err){}
+  try { new ResizeObserver(function(){ fitField(); layoutSortGrid(); }).observe(elFieldStage); } catch(err){}
 }
 
 /* ==========================================================================
