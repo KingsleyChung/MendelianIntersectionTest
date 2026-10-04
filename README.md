@@ -61,3 +61,9 @@ https://kingsleychung.github.io/MendelianIntersectionTest/
 ## 授权
 
 教学用途。
+
+## 果蝇实验室
+
+新增《基因在染色体上》两轮果蝇杂交互动实验，保留本仓库原有豌豆实验首页。
+
+[打开果蝇实验室](https://kingsleychung.github.io/MendelianIntersectionTest/fruit-fly/) · [使用说明](fruit-fly/README.md)
