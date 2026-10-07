@@ -23,7 +23,7 @@
 </style>
   <style>
     .sample-badges,.specimen-badges{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}.sample-badges{position:absolute;left:5px;right:5px;top:7px;z-index:3}.specimen-badges{width:100%;margin-bottom:3px}.sex-badge,.eye-badge{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:4px 6px;font-size:10px;font-weight:700;line-height:1;white-space:nowrap}.sex-badge.female{background:#f7dce5;color:#9b4862}.sex-badge.male{background:#dcebf4;color:#356d8e}.eye-badge.red{background:#ffe0d9;color:#ae4036}.eye-badge.white{background:#f5f5ec;color:#707666;border:1px solid #d8ddd0}.eye-badge i{width:7px;height:7px;border-radius:50%;display:inline-block;background:#d15445;box-shadow:0 0 0 2px #d1544522}.eye-badge.white i{background:#fff;border:1px solid #7d8475;box-shadow:none}.material-card .bottle-art{margin-top:21px}.material-card .badge{z-index:4}.parent-slot .sample-badges{position:static;margin-bottom:5px}.specimen .fly-art{margin-top:0}.specimen-badges .sex-badge,.specimen-badges .eye-badge{font-size:9px;padding:4px 5px}
-    .context-note{margin:0 18px 4px;padding:12px 13px;border-radius:11px;background:#f8f0da;border:1px solid #eadfbd;color:#6d765f;font-size:11px;line-height:1.7}.context-note b{display:block;color:#7d8c65;font-size:12px;margin-bottom:3px}.bottom-help{text-align:center;margin-top:18px}.bottom-help .quiet{font-size:12px;color:#7d8975}
+    .context-note{margin:0 18px 4px;padding:12px 13px;border-radius:11px;background:#f8f0da;border:1px solid #eadfbd;color:#6d765f;font-size:11px;line-height:1.7}.context-note b{display:block;color:#7d8c65;font-size:12px;margin-bottom:3px}.bottom-help{text-align:center;margin-top:18px}.bottom-help .quiet{font-size:12px;color:#7d8975}.bottom-help .hint{max-width:720px;margin:10px auto 0;text-align:left}
     .diagram-art{margin:14px 0 2px;border:1px solid #dfe7d7;border-radius:14px;background:linear-gradient(145deg,#fbfdf6,#f0f5e9);overflow:hidden}.polished-diagram{display:block;width:100%;height:auto;min-height:220px}.polished-diagram text{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:15px;fill:#3d5540}.polished-diagram .diag-kicker{font-size:12px;letter-spacing:1px;fill:#809575}.polished-diagram .diag-parent{font-size:17px;font-weight:700}.polished-diagram .diag-label,.polished-diagram .diag-foot{font-size:12px;fill:#7f9277}.polished-diagram .diag-multiply{font-size:22px;fill:#8ba07f}.polished-diagram .diag-arrow{fill:none;stroke:#9aac91;stroke-width:2}.polished-diagram .diag-green{fill:#e1edd6;stroke:#b4cda4}.polished-diagram .diag-gold{fill:#f3ead0;stroke:#dbc688}.polished-diagram .diag-light{fill:#edf4e7;stroke:#cadcc1}.polished-diagram .diag-result{fill:#fffef8;stroke:#b8d0aa}.polished-diagram .diag-white{fill:#f7f7ef;stroke:#c9cec0}.hypothesis-card .prediction{margin-top:12px}
     .polished-diagram .diag-arrow{display:none}.polished-diagram .diag-crossing path,.polished-diagram .diag-grid-arrows path,.polished-diagram .diag-grid-line{fill:none;stroke:#91a986;stroke-width:1.7;opacity:.9}
     .reference-diagram{display:block;width:100%;max-height:220px;object-fit:contain;margin:14px 0;border-radius:9px;background:#fff;border:1px solid #e3e7dd}
@@ -39,12 +39,12 @@
   </header>
   <main>
     <section class="intro">
-      <div><div class="eyebrow">MORGAN’S EXPERIMENT / 摩尔根的果蝇实验</div><h1>让后代，告诉我们答案。</h1><p>选择亲本，观察后代。用两轮实验，寻找眼色基因的位置。</p></div>
+      <div><div class="eyebrow">MORGAN’S EXPERIMENT / 摩尔根的果蝇实验</div><h1>让后代，告诉我们答案。</h1><p>选择亲本，观察后代。用测交实验，寻找眼色基因的位置。</p></div>
       <div class="session"><span class="live-dot"></span>分组实验 <b>约 3 分钟</b></div>
     </section>
     <nav class="round-nav" aria-label="实验进度"><div id="round-one" class="round active"><span>01</span><div>测交实验（一）</div></div><div class="round-line"></div><div id="round-two" class="round"><span>02</span><div>测交实验（二）</div></div><div class="round-line"></div><div id="round-three" class="round"><span>✓</span><div>证据与结论</div></div></nav>
     <section class="task-bar"><span class="task-icon">↗</span><div><strong id="task-title"></strong><p id="task-description"></p></div></section>
-    <div id="hint" class="hint" hidden></div>
+    
     <div class="workspace">
       <aside class="panel material-panel"><div class="panel-heading"><div><span class="eyebrow">MATERIALS</span><h2>果蝇材料架 <span id="material-count" class="count">7</span></h2></div><button id="genotype-button" class="small-button" aria-expanded="false">查看基因型</button></div><p class="panel-note">触屏先点选，再拖动或点亲本位置。</p><div class="context-note"><b>实验背景</b><span>白眼雄果蝇来自野生型果蝇的一次偶然基因突变，后来成为研究眼色遗传的关键材料。</span></div><div id="materials" class="materials"></div><div id="material-detail" class="material-detail" hidden></div><div class="shelf-note"><span>●</span> 培养瓶内为该类群体的示意，不代表数量。</div></aside>
       <section class="panel bench-panel"><div class="panel-heading"><div><span class="eyebrow">EXPERIMENT BENCH</span><h2 id="bench-title">配置你的杂交实验</h2></div><span id="step-chip" class="chip">选择亲本</span></div>
@@ -59,7 +59,7 @@
     <section id="hypothesis-section" class="panel hypothesis-section" hidden><div class="panel-heading"><div><span class="eyebrow">PREDICTION & EVIDENCE</span><h2>相同的实验，两种不同的解释</h2></div><button id="close-diagram" class="quiet">收起图解</button></div><p class="panel-note">根据本轮实验材料，对照两种假说的遗传图解、预测与实际观察。</p><div id="hypotheses" class="hypotheses"></div></section>
     <section id="conclusion" class="panel conclusion" hidden></section>
     <section id="records" class="panel records" hidden><div class="panel-heading"><div><span class="eyebrow">LAB NOTEBOOK</span><h2>小组实验记录</h2></div></div><div id="record-content"></div></section>
-    <div class="bottom-help"><button id="hint-button" class="quiet">需要一点提示？</button></div><footer><span>W 红眼显性基因 · w 白眼隐性基因</span><span>教学模拟 · 图形与数量均非真实实验采集</span></footer>
+    <div class="bottom-help"><button id="hint-button" class="quiet">需要一点提示？</button><div id="hint" class="hint" hidden></div></div><footer><span>W 红眼显性基因 · w 白眼隐性基因</span><span>教学模拟 · 图形与数量均非真实实验采集</span></footer>
   </main>
   <div id="toast" role="status" aria-live="polite"></div>
   <dialog id="history-dialog"><div class="dialog-heading"><div><span class="eyebrow">BEFORE WE BEGIN</span><h2>摩尔根观察到了什么？</h2></div><button id="close-history" class="quiet">关闭 ✕</button></div><p>纯合红眼雌果蝇与白眼雄果蝇杂交，F₁全为红眼；F₁雌雄交配后，F₂红眼与白眼约为3∶1，白眼均为雄性。</p><div class="historical-chart"><div><b>P</b><span>纯合红眼 ♀</span><i>×</i><span>白眼 ♂</span></div><div class="chart-arrow">↓</div><div><b>F₁</b><span>红眼 ♀、♂</span></div><div class="chart-arrow">↓ <small>F₁雌雄交配</small></div><div><b>F₂</b><span>红眼 ♀、♂</span><i>∶</i><span>白眼 ♂</span></div><div class="chart-ratio">3 ∶ 1</div></div><div class="instruction-box">红白比例符合分离规律，但为什么白眼与性别有关？两种关于眼色基因位置的假说，都可能解释这个现象。</div><p class="panel-note">依据提供的课堂图谱重绘。3∶1为理论比例，有限样本的观察比例会有偏差。</p></dialog>
@@ -103,10 +103,10 @@ const initialMaterials = [
   { id: 'p-female', name: '野生型红眼雌果蝇', source: '亲本', sex: 'female', eye: 'red', x: 'XᵂXᵂ', xy: 'XᵂXᵂ' },
   { id: 'wild-male', name: '野生型红眼雄果蝇', source: '野生型', sex: 'male', eye: 'red', x: 'XᵂY', xy: 'XᵂYᵂ' },
   { id: 'p-male', name: '白眼雄果蝇', source: '亲本', sex: 'male', eye: 'white', x: 'XʷY', xy: 'XʷYʷ' },
-  { id: 'f1-female', name: 'F1红眼雌果蝇', source: 'F1', sex: 'female', eye: 'red', x: 'XᵂXʷ', xy: 'XᵂXʷ' },
-  { id: 'f1-male', name: 'F1红眼雄果蝇', source: 'F1', sex: 'male', eye: 'red', x: 'XᵂY', xy: 'XᵂYʷ' },
-  { id: 'f2-female', name: 'F2红眼雌果蝇', source: 'F2', sex: 'female', eye: 'red', x: 'XᵂXᵂ / XᵂXʷ', xy: 'XᵂXᵂ / XᵂXʷ' },
-  { id: 'f2-male', name: 'F2红眼雄果蝇', source: 'F2', sex: 'male', eye: 'red', x: 'XᵂY', xy: 'XᵂYʷ' }
+  { id: 'f1-female', name: 'F₁红眼雌果蝇', source: 'F₁', sex: 'female', eye: 'red', x: 'XᵂXʷ', xy: 'XᵂXʷ' },
+  { id: 'f1-male', name: 'F₁红眼雄果蝇', source: 'F₁', sex: 'male', eye: 'red', x: 'XᵂY', xy: 'XᵂYʷ' },
+  { id: 'f2-female', name: 'F₂红眼雌果蝇', source: 'F₂', sex: 'female', eye: 'red', x: 'XᵂXᵂ / XᵂXʷ', xy: 'XᵂXᵂ / XᵂXʷ' },
+  { id: 'f2-male', name: 'F₂红眼雄果蝇', source: 'F₂', sex: 'male', eye: 'red', x: 'XᵂY', xy: 'XᵂYʷ' }
 ];
 const unlockedMaterials = [
   { id: 'offspring-wf', name: '白眼雌果蝇', source: '测交实验（二）材料', sex: 'female', eye: 'white', x: 'XʷXʷ', xy: 'XʷXʷ', new: true },
@@ -172,7 +172,8 @@ function renderMaterials() {
   $('material-detail').hidden = !state.showGenotypes;
   if (state.showGenotypes) {
     const m = materialById(state.selectedMaterial) || materialById(state.female) || materials()[0];
-    $('material-detail').innerHTML = `<b>${m.source} · ${m.name}</b><div>假说二 · 仅X：${m.x}</div><div>假说三 · XY同源区段：${m.xy}</div><div>${m.id === 'wild-male' ? '“纯合”指假说三下为XᵂYᵂ；假说二下雄性仅有一份眼色基因，不称纯合。' : m.id === 'f2-female' ? '该瓶含两种红眼基因型，不能将整瓶视为同一基因型。' : '基因型是按各自假说推演的写法，不是对基因位置的预先确认。'}</div>`;
+    $('material-detail').innerHTML = `<b>${m.source} · ${m.name}</b><div>假说二 · 仅X：${m.x}</div><div>假说三 · XY同源区段：${m.xy}</div><div>${m.id === 'wild-male' ? '“纯合”指假说三下为XᵂYᵂ；假说二下雄性仅有一份眼色基因，不称纯合。' : m.id === 'f2-female' ? '该瓶含两种红眼基因型，不能将整瓶视为同一基因型。' : ''}</div>`;
+    $('genotype-button').closest('.panel-heading').after($('material-detail'));
   }
 }
 function fillSlot(sex) {

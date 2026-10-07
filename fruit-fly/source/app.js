@@ -5,10 +5,10 @@ const initialMaterials = [
   { id: 'p-female', name: '野生型红眼雌果蝇', source: '亲本', sex: 'female', eye: 'red', x: 'XᵂXᵂ', xy: 'XᵂXᵂ' },
   { id: 'wild-male', name: '野生型红眼雄果蝇', source: '野生型', sex: 'male', eye: 'red', x: 'XᵂY', xy: 'XᵂYᵂ' },
   { id: 'p-male', name: '白眼雄果蝇', source: '亲本', sex: 'male', eye: 'white', x: 'XʷY', xy: 'XʷYʷ' },
-  { id: 'f1-female', name: 'F1红眼雌果蝇', source: 'F1', sex: 'female', eye: 'red', x: 'XᵂXʷ', xy: 'XᵂXʷ' },
-  { id: 'f1-male', name: 'F1红眼雄果蝇', source: 'F1', sex: 'male', eye: 'red', x: 'XᵂY', xy: 'XᵂYʷ' },
-  { id: 'f2-female', name: 'F2红眼雌果蝇', source: 'F2', sex: 'female', eye: 'red', x: 'XᵂXᵂ / XᵂXʷ', xy: 'XᵂXᵂ / XᵂXʷ' },
-  { id: 'f2-male', name: 'F2红眼雄果蝇', source: 'F2', sex: 'male', eye: 'red', x: 'XᵂY', xy: 'XᵂYʷ' }
+  { id: 'f1-female', name: 'F₁红眼雌果蝇', source: 'F₁', sex: 'female', eye: 'red', x: 'XᵂXʷ', xy: 'XᵂXʷ' },
+  { id: 'f1-male', name: 'F₁红眼雄果蝇', source: 'F₁', sex: 'male', eye: 'red', x: 'XᵂY', xy: 'XᵂYʷ' },
+  { id: 'f2-female', name: 'F₂红眼雌果蝇', source: 'F₂', sex: 'female', eye: 'red', x: 'XᵂXᵂ / XᵂXʷ', xy: 'XᵂXᵂ / XᵂXʷ' },
+  { id: 'f2-male', name: 'F₂红眼雄果蝇', source: 'F₂', sex: 'male', eye: 'red', x: 'XᵂY', xy: 'XᵂYʷ' }
 ];
 const unlockedMaterials = [
   { id: 'offspring-wf', name: '白眼雌果蝇', source: '测交实验（二）材料', sex: 'female', eye: 'white', x: 'XʷXʷ', xy: 'XʷXʷ', new: true },
@@ -74,7 +74,8 @@ function renderMaterials() {
   $('material-detail').hidden = !state.showGenotypes;
   if (state.showGenotypes) {
     const m = materialById(state.selectedMaterial) || materialById(state.female) || materials()[0];
-    $('material-detail').innerHTML = `<b>${m.source} · ${m.name}</b><div>假说二 · 仅X：${m.x}</div><div>假说三 · XY同源区段：${m.xy}</div><div>${m.id === 'wild-male' ? '“纯合”指假说三下为XᵂYᵂ；假说二下雄性仅有一份眼色基因，不称纯合。' : m.id === 'f2-female' ? '该瓶含两种红眼基因型，不能将整瓶视为同一基因型。' : '基因型是按各自假说推演的写法，不是对基因位置的预先确认。'}</div>`;
+    $('material-detail').innerHTML = `<b>${m.source} · ${m.name}</b><div>假说二 · 仅X：${m.x}</div><div>假说三 · XY同源区段：${m.xy}</div><div>${m.id === 'wild-male' ? '“纯合”指假说三下为XᵂYᵂ；假说二下雄性仅有一份眼色基因，不称纯合。' : m.id === 'f2-female' ? '该瓶含两种红眼基因型，不能将整瓶视为同一基因型。' : ''}</div>`;
+    $('genotype-button').closest('.panel-heading').after($('material-detail'));
   }
 }
 function fillSlot(sex) {
