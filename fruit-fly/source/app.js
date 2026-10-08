@@ -63,7 +63,7 @@ function render() {
 function renderTask() {
   const first = state.round === 1;
   $('task-title').textContent = state.complete ? '从观察出发，形成结论' : first ? '测交实验（一）' : '测交实验（二）';
-  $('task-description').textContent = state.complete ? '回看两轮证据：为什么第一轮无法区分，而第二轮可以？' : first ? '比较两种假说：眼色基因仅在X上，或位于XY同源区段。选择亲本，观察后代。' : '选择白眼雌果蝇与野生型红眼雄果蝇，完成关键验证。';
+  $('task-description').textContent = state.complete ? '回看两轮证据：为什么第一轮无法区分，而第二轮可以？' : first ? '比较两种假说：眼色基因仅在X上，或位于XY同源区段。选择亲本，观察后代。' : '继续比较两种假说，观察这一轮亲本组合产生的后代。';
   $('hint-button').hidden = state.complete;
 }
 function renderMaterials() {
