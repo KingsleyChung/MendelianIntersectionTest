@@ -20,6 +20,30 @@
 @media(max-width:520px){.specimen .fly-art{width:100%;max-width:60px}}
 @media(prefers-reduced-motion:reduce){.playing *{animation:none!important}}
 
+/* 课堂投屏可读性：放大样本名称、属性标签、结果图表与结论等关键信息。 */
+.material-card .material-name{font-size:14px;line-height:1.45;font-weight:650}
+.material-card .material-source{font-size:11px}
+.sample-badges .sex-badge,.sample-badges .eye-badge{font-size:11px}
+.specimen-badges .sex-badge,.specimen-badges .eye-badge{font-size:10px}
+.category-bin{font-size:13px}
+.category-bin .bin-count{font-size:11px}
+.result-heading h3{font-size:21px}
+.result-heading span{font-size:11px}
+.bar-number{font-size:18px}
+.bar-label{font-size:13px;font-weight:600}
+.result-meta{font-size:12px}
+.result-callout{font-size:14px}
+.conclusion h2{font-size:28px;line-height:1.5}
+.conclusion p{font-size:15px}
+
+@media(max-width:520px){
+  .material-card .material-name{font-size:13px}
+  .bar-label{font-size:12px}
+  .result-heading h3{font-size:20px}
+  .conclusion h2{font-size:24px}
+  .conclusion p{font-size:13px}
+}
+
 </style>
   <style>
     .sample-badges,.specimen-badges{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}.sample-badges{position:absolute;left:5px;right:5px;top:7px;z-index:3}.specimen-badges{width:100%;margin-bottom:3px}.sex-badge,.eye-badge{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:4px 6px;font-size:10px;font-weight:700;line-height:1;white-space:nowrap}.sex-badge.female{background:#f7dce5;color:#9b4862}.sex-badge.male{background:#dcebf4;color:#356d8e}.eye-badge.red{background:#ffe0d9;color:#ae4036}.eye-badge.white{background:#f5f5ec;color:#707666;border:1px solid #d8ddd0}.eye-badge i{width:7px;height:7px;border-radius:50%;display:inline-block;background:#d15445;box-shadow:0 0 0 2px #d1544522}.eye-badge.white i{background:#fff;border:1px solid #7d8475;box-shadow:none}.material-card .bottle-art{margin-top:21px}.material-card .badge{z-index:4}.parent-slot .sample-badges{position:static;margin-bottom:5px}.specimen .fly-art{margin-top:0}.specimen-badges .sex-badge,.specimen-badges .eye-badge{font-size:9px;padding:4px 5px}

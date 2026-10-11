@@ -11,3 +11,27 @@
 @media(orientation:portrait) and (min-width:761px) and (max-width:1100px){.workspace{grid-template-columns:1fr}.materials{grid-template-columns:repeat(3,minmax(0,1fr))}.material-card{min-height:160px}.material-card .bottle-art{height:95px;width:66px}}
 @media(max-width:520px){.specimen .fly-art{width:100%;max-width:60px}}
 @media(prefers-reduced-motion:reduce){.playing *{animation:none!important}}
+
+/* 课堂投屏可读性：放大样本名称、属性标签、结果图表与结论等关键信息。 */
+.material-card .material-name{font-size:14px;line-height:1.45;font-weight:650}
+.material-card .material-source{font-size:11px}
+.sample-badges .sex-badge,.sample-badges .eye-badge{font-size:11px}
+.specimen-badges .sex-badge,.specimen-badges .eye-badge{font-size:10px}
+.category-bin{font-size:13px}
+.category-bin .bin-count{font-size:11px}
+.result-heading h3{font-size:21px}
+.result-heading span{font-size:11px}
+.bar-number{font-size:18px}
+.bar-label{font-size:13px;font-weight:600}
+.result-meta{font-size:12px}
+.result-callout{font-size:14px}
+.conclusion h2{font-size:28px;line-height:1.5}
+.conclusion p{font-size:15px}
+
+@media(max-width:520px){
+  .material-card .material-name{font-size:13px}
+  .bar-label{font-size:12px}
+  .result-heading h3{font-size:20px}
+  .conclusion h2{font-size:24px}
+  .conclusion p{font-size:13px}
+}
