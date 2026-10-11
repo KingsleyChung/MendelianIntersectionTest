@@ -47,6 +47,7 @@ function reset() {
   render();
 }
 function render() {
+  document.body.dataset.phase = state.phase;
   renderTask();
   renderMaterials();
   renderBench();

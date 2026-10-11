@@ -35,3 +35,78 @@
   .conclusion h2{font-size:24px}
   .conclusion p{font-size:13px}
 }
+
+/* 课堂投屏阅读模式：大屏下放大关键文字、标签和结果。 */
+@media(min-width:900px){
+  main{max-width:1500px;padding-top:38px}
+  .brand{font-size:23px}.course{font-size:15px}.intro h1{font-size:42px}.intro p{font-size:17px}
+  .session{font-size:14px;padding:14px 19px}
+  .round-nav{max-width:760px;margin-bottom:30px}.round>span{width:46px;height:46px;font-size:15px}.round div{font-size:17px}.round-line{margin-left:28px;margin-right:28px}
+  .task-bar{padding:22px 28px;margin-bottom:24px}.task-icon{width:44px;height:44px;font-size:29px}.task-bar strong{font-size:20px}.task-bar p{font-size:16px;margin-top:7px}
+  .panel-heading{padding:30px 30px 17px}.panel-heading h2{font-size:25px}.eyebrow{font-size:12px}.panel-note{font-size:16px}.context-note{font-size:15px;padding:16px 18px}.context-note b{font-size:16px}
+  .materials{gap:14px;padding:24px 22px}.material-card{min-height:215px;padding-top:18px}.material-card .bottle-art{width:78px;height:112px}.material-card .material-name{font-size:16px!important}.material-card .material-source{font-size:13px}.sample-badges .sex-badge,.sample-badges .eye-badge{font-size:12px!important;padding:5px 7px}
+  .bench-surface{min-height:225px;margin-left:30px;margin-right:30px}.bench-surface .bottle-art{width:116px;height:166px}.bench-caption{font-size:20px}.bench-caption small{font-size:15px;max-width:210px}
+  .cross-area{padding:28px 34px 15px;gap:25px}.parent-slot{min-height:170px}.slot-sex{font-size:38px}.slot-label{font-size:18px}.parent-slot small{font-size:14px}.bench-actions{padding:28px 30px}.primary,.secondary{font-size:17px;min-height:58px;padding:14px 25px}.quiet,.small-button{font-size:15px}
+  .result-heading{padding:24px 30px 8px}.result-heading h3{font-size:27px}.result-heading span{font-size:14px}.result-chart{gap:18px;padding:18px 34px 25px}.bar-track{height:190px}.bar-number{font-size:23px}.bar-label{font-size:16px}.result-meta{font-size:15px;padding-left:30px;padding-right:30px}.result-callout{font-size:17px;margin-left:30px;margin-right:30px;padding:19px 22px}
+  .hypotheses{gap:24px;padding:24px 30px 0}.hypothesis-card{padding:24px}.hypothesis-title{font-size:19px}.hypothesis-title span{font-size:14px}.hypothesis-card p,.prediction{font-size:15px}.prediction{padding:14px}.conclusion{padding:36px}.conclusion h2{font-size:34px}.conclusion p{font-size:18px}.record-card{font-size:15px}
+}
+
+/* 阶段聚焦：让当前需要操作的面板获得更多空间和更大的视觉层级。 */
+@media(min-width:900px){
+  .workspace{transition:grid-template-columns .35s ease}
+  .material-panel,.bench-panel{transition:transform .35s ease,box-shadow .35s ease}
+  body[data-phase="select"] .workspace{grid-template-columns:minmax(520px,1.18fr) minmax(420px,.82fr)}
+  body[data-phase="select"] .material-panel{transform:scale(1.015);box-shadow:0 12px 34px #283f3220;z-index:1}
+  body[data-phase="select"] .material-card{min-height:238px}
+  body[data-phase="select"] .material-card .bottle-art{width:92px;height:132px}
+  body[data-phase="select"] .material-card .material-name{font-size:18px!important}
+  body[data-phase="select"] .material-card .material-source{font-size:14px}
+  body[data-phase="select"] .sample-badges .sex-badge,body[data-phase="select"] .sample-badges .eye-badge{font-size:13px!important}
+  body[data-phase="select"] .bench-panel{transform:scale(.985);opacity:.96}
+  body[data-phase="select"] .bench-panel .bench-surface{min-height:190px}
+  body[data-phase="culture"] .workspace,body[data-phase="parents"] .workspace,body[data-phase="inspection"] .workspace,body[data-phase="result"] .workspace{grid-template-columns:minmax(360px,.72fr) minmax(560px,1.28fr)}
+  body[data-phase="culture"] .bench-panel,body[data-phase="parents"] .bench-panel,body[data-phase="inspection"] .bench-panel,body[data-phase="result"] .bench-panel{transform:scale(1.015);box-shadow:0 12px 34px #283f3220;z-index:1}
+  body[data-phase="culture"] .culture-stage .bottle-art{width:150px;height:215px}
+  body[data-phase="culture"] .culture-stage h3{font-size:24px}
+  body[data-phase="culture"] .culture-stage p{font-size:15px}
+  body[data-phase="culture"] .life-cycle span{font-size:15px;padding:12px 16px}
+  body[data-phase="parents"] .transfer-stage .bottle-art{width:140px;height:200px}
+  body[data-phase="parents"] .instruction-box{font-size:16px}
+  body[data-phase="inspection"] .inspection-stage{padding-top:78px;padding-bottom:90px}
+  body[data-phase="inspection"] .magnifier{font-size:92px}
+  body[data-phase="inspection"] .inspection-stage h3{font-size:24px}
+}
+
+/* 课堂投屏模式：优先保证后排学生能读到阶段、任务和操作提示。 */
+@media(min-width:761px){
+  :root{font-size:16px}
+  .round>span{width:40px;height:40px;font-size:13px}
+  .round div{font-size:15px}
+  .task-bar{padding:19px 24px}
+  .task-bar strong{font-size:17px}
+  .task-bar p{font-size:14px}
+  .panel-heading{padding:26px 26px 14px}
+  .panel-heading h2{font-size:22px}
+  .panel-note{font-size:14px}
+  .context-note{font-size:13px}
+  .context-note b{font-size:14px}
+  .material-card{min-height:186px;padding-top:14px}
+  .bench-caption{font-size:17px}
+  .bench-caption small{font-size:13px}
+  .slot-label{font-size:15px}
+  .parent-slot small{font-size:12px}
+  .bench-actions{padding:24px 26px}
+  .primary,.secondary{font-size:15px}
+  .result-callout{font-size:15px;padding:17px 19px}
+  .result-meta{font-size:13px}
+}
+
+/* 投影端关键说明再放大，避免统计信息和操作结论在后排变成辅助小字。 */
+@media(min-width:900px){
+  .result-meta{font-size:17px;line-height:1.9}
+  .result-callout{font-size:19px;line-height:1.9}
+  body[data-phase="parents"] .instruction-box{font-size:19px;line-height:1.9}
+  body[data-phase="parents"] .instruction-box p{font-size:16px}
+  body[data-phase="select"] .material-card .bottle-art{width:104px;height:148px}
+  body[data-phase="select"] .material-card .material-name{font-size:20px!important;line-height:1.45}
+}
